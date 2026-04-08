@@ -11,7 +11,7 @@ import {
   Dimensions,
 } from 'react-native';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 type Screen = 'START' | 'INPUT' | 'ANALYZING' | 'RESULT';
 
@@ -38,43 +38,42 @@ const App = () => {
     switch (currentScreen) {
       case 'START':
         return (
-          <View style={styles.startWrapper}>
-            <Text style={styles.outerTitle}>홈 화면</Text>
-            <View style={styles.phoneFrame}>
-              {/* Card Container */}
-              <View style={styles.mainCard}>
-                {/* Header */}
-                <View style={styles.cardHeader}>
-                  <View style={{ width: 30 }} />
-                  <Text style={styles.cardHeaderTitle}>AI 채팅 분석</Text>
-                  <TouchableOpacity>
-                    <Text style={styles.cardHeaderIcon}>≡</Text>
-                  </TouchableOpacity>
-                </View>
+          <View style={styles.fullScreenContent}>
+            {/* Main Card occupying the full screen with padding */}
+            <View style={styles.mainCardFull}>
+              {/* Header */}
+              <View style={styles.cardHeader}>
+                <View style={{ width: 30 }} />
+                <Text style={styles.cardHeaderTitle}>AI 채팅 분석</Text>
+                <TouchableOpacity>
+                  <Text style={styles.cardHeaderIcon}>≡</Text>
+                </TouchableOpacity>
+              </View>
 
-                {/* Body Content */}
-                <View style={styles.cardBody}>
+              {/* Body Content */}
+              <View style={styles.cardBody}>
+                <View style={styles.textGroup}>
                   <Text style={styles.bodyTextMain}>대화를 분석해</Text>
                   <Text style={styles.bodyTextMain}>상대의 마음을 알아보세요</Text>
-
-                  <TouchableOpacity style={styles.gradientButton} onPress={startAnalysis}>
-                    <Text style={styles.gradientButtonText}>분석 시작하기</Text>
-                  </TouchableOpacity>
                 </View>
 
-                {/* Decorative Waves */}
-                <View style={styles.waveLayerContainer}>
-                  <View style={[styles.waveCircle, styles.wave1]} />
-                  <View style={[styles.waveCircle, styles.wave2]} />
-                  <View style={[styles.waveCircle, styles.wave3]} />
-                  <Text style={styles.sparkle1}>✦</Text>
-                  <Text style={styles.sparkle2}>✦</Text>
-                  <Text style={styles.sparkle3}>✦</Text>
-                </View>
-
-                {/* Bottom Bar */}
-                <View style={styles.bottomBar} />
+                <TouchableOpacity style={styles.gradientButton} onPress={startAnalysis}>
+                  <Text style={styles.gradientButtonText}>분석 시작하기</Text>
+                </TouchableOpacity>
               </View>
+
+              {/* Decorative Waves */}
+              <View style={styles.waveLayerContainer}>
+                <View style={[styles.waveCircle, styles.wave1]} />
+                <View style={[styles.waveCircle, styles.wave2]} />
+                <View style={[styles.waveCircle, styles.wave3]} />
+                <Text style={styles.sparkle1}>✦</Text>
+                <Text style={styles.sparkle2}>✦</Text>
+                <Text style={styles.sparkle3}>✦</Text>
+              </View>
+
+              {/* Bottom Home Indicator Line */}
+              <View style={styles.bottomBar} />
             </View>
           </View>
         );
@@ -151,79 +150,72 @@ const App = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F3F4F9',
+    backgroundColor: '#FFFFFF',
   },
   screenContainer: {
     flex: 1,
     backgroundColor: '#FFF',
   },
-  startWrapper: {
+  fullScreenContent: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#EDF2F7',
+    backgroundColor: '#F3F4F9', // Subtle background color
+    padding: 12, // Margin around the main card to show the "frame" effect
   },
-  outerTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#4A5568',
-    marginBottom: 20,
-  },
-  phoneFrame: {
-    width: width * 0.85,
-    height: height * 0.75,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 50,
-    padding: 10,
-    elevation: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 15 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-  },
-  mainCard: {
+  mainCardFull: {
     flex: 1,
-    backgroundColor: '#E6E6FA', // Light lavender
-    borderRadius: 40,
+    backgroundColor: '#E6E6FA', // Lavender background from the image
+    borderRadius: 45,
     overflow: 'hidden',
     position: 'relative',
+    borderWidth: 1,
+    borderColor: '#F0F0FF',
+    // Shadow for depth
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 30,
-    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingHorizontal: 25,
   },
   cardHeaderTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
     color: '#7C3AED',
   },
   cardHeaderIcon: {
-    fontSize: 28,
+    fontSize: 30,
     color: '#7C3AED',
   },
   cardBody: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: 80,
+    paddingBottom: 100,
     zIndex: 10,
   },
+  textGroup: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
   bodyTextMain: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '600',
     color: '#4338CA',
     textAlign: 'center',
-    marginBottom: 5,
+    lineHeight: 36,
   },
   gradientButton: {
-    marginTop: 40,
+    marginTop: 20,
     backgroundColor: '#8B5CF6',
     paddingVertical: 18,
-    paddingHorizontal: 45,
-    borderRadius: 20,
+    paddingHorizontal: 50,
+    borderRadius: 22,
     shadowColor: '#8B5CF6',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -239,44 +231,44 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     width: '100%',
-    height: '40%',
+    height: '45%',
   },
   waveCircle: {
     position: 'absolute',
-    width: width * 1.5,
-    height: width * 1.5,
-    borderRadius: width * 0.75,
+    width: width * 1.8,
+    height: width * 1.8,
+    borderRadius: width * 0.9,
   },
   wave1: {
     backgroundColor: '#DDD6FE',
-    bottom: -width * 1.1,
-    left: -width * 0.2,
-    opacity: 0.4,
+    bottom: -width * 1.25,
+    left: -width * 0.3,
+    opacity: 0.45,
   },
   wave2: {
     backgroundColor: '#C4B5FD',
-    bottom: -width * 1.2,
-    left: -width * 0.5,
-    opacity: 0.6,
+    bottom: -width * 1.35,
+    left: -width * 0.6,
+    opacity: 0.65,
   },
   wave3: {
     backgroundColor: '#A78BFA',
-    bottom: -width * 1.25,
+    bottom: -width * 1.42,
     left: -width * 0.1,
-    opacity: 0.8,
+    opacity: 0.85,
   },
-  sparkle1: { position: 'absolute', bottom: '50%', left: '20%', color: '#FFF', fontSize: 18, opacity: 0.7 },
-  sparkle2: { position: 'absolute', bottom: '65%', left: '35%', color: '#FFF', fontSize: 14, opacity: 0.5 },
-  sparkle3: { position: 'absolute', bottom: '45%', right: '25%', color: '#FFF', fontSize: 22, opacity: 0.8 },
+  sparkle1: { position: 'absolute', bottom: '60%', left: '25%', color: '#FFF', fontSize: 18, opacity: 0.7 },
+  sparkle2: { position: 'absolute', bottom: '75%', left: '40%', color: '#FFF', fontSize: 14, opacity: 0.5 },
+  sparkle3: { position: 'absolute', bottom: '55%', right: '25%', color: '#FFF', fontSize: 22, opacity: 0.8 },
   bottomBar: {
     position: 'absolute',
-    bottom: 15,
+    bottom: 20,
     alignSelf: 'center',
-    width: 130,
+    width: 140,
     height: 6,
     backgroundColor: '#8B5CF6',
     borderRadius: 10,
-    opacity: 0.4,
+    opacity: 0.3,
   },
   // Inner screens styles
   innerHeader: {
