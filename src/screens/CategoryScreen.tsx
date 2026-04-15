@@ -18,7 +18,7 @@ const CategoryScreen: React.FC<CategoryScreenProps> = ({ onBack, onNext }) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const categories = ['썸', '재회', '환승', '소개팅'];
-
+//test
   return (
     <View style={styles.container}>
       {/* Header */}
