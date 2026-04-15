@@ -11,16 +11,17 @@ const { width } = Dimensions.get('window');
 
 interface StartScreenProps {
   onStart: () => void;
+  onOpenMypage: () => void;
 }
 
-const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
+const StartScreen: React.FC<StartScreenProps> = ({ onStart, onOpenMypage }) => {
   return (
     <View style={styles.startContainer}>
       {/* Header */}
       <View style={styles.cardHeader}>
         <View style={{ width: 30 }} />
         <Text style={styles.cardHeaderTitle}>AI 채팅 분석</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={onOpenMypage}>
           <Text style={styles.cardHeaderIcon}>≡</Text>
         </TouchableOpacity>
       </View>
