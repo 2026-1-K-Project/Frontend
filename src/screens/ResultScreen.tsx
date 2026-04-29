@@ -24,7 +24,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ resultScore, onReset }) => 
       <Text style={styles.sectionTitle}>{title}</Text>
     </View>
   );
-
+// push용
   return (
     <View style={styles.container}>
       {/* 고정 헤더 */}
