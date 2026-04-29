@@ -1,1 +1,1 @@
-export type Screen = 'START' | 'CATEGORY' | 'INPUT' | 'ANALYZING' | 'RESULT' | 'LOGIN' | 'ARCHIVE' | 'SETTINGS';
+export type Screen = 'START' | 'CATEGORY' | 'INPUT' | 'ANALYZING' | 'RESULT' | 'LOGIN' | 'ARCHIVE' | 'SETTINGS' | 'ARCHIVE_DETAIL' | 'TRASH';
