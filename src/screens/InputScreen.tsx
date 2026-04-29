@@ -8,23 +8,22 @@ import {
   Image,
   Dimensions,
   ScrollView,
-  KeyboardAvoidingView,Platform,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
-// 이미지 피커 라이브러리 추가
 import { launchImageLibrary } from 'react-native-image-picker';
 
 const { width } = Dimensions.get('window');
 
 interface InputScreenProps {
   onBack: () => void;
-  onAnalyze: () => void;
+  onAnalyze: (imageUri: string, description: string) => void;
 }
 
 const InputScreen: React.FC<InputScreenProps> = ({ onBack, onAnalyze }) => {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [description, setDescription] = useState('');
 
-  // 갤러리에서 이미지 선택 함수
   const handleUpload = async () => {
     const result = await launchImageLibrary({
       mediaType: 'photo',
@@ -40,74 +39,69 @@ const InputScreen: React.FC<InputScreenProps> = ({ onBack, onAnalyze }) => {
   const isReady = !!imageUri;
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.screenContainer}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.headerBtn}>
-          <Text style={styles.backIcon}>‹</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>AI 채팅 분석</Text>
-        <View style={styles.headerRight}>
-          <Text style={styles.dotsIcon}>●●●</Text>
-        </View>
-      </View>
-
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Text style={styles.title}>대화 내용을 넣어주세요</Text>
-
-        {/* 첫 번째 박스: 이미지 미리보기 */}
-        <View style={styles.imagePreviewBox}>
-          {imageUri ? (
-            <Image source={{ uri: imageUri }} style={styles.previewImage} resizeMode="contain" />
-          ) : (
-            <View style={styles.emptyImageBox}>
-              <Text style={styles.emptyText}>이미지를 첨부해 주세요</Text>
-            </View>
-          )}
-        </View>
-
-        {/* 두 번째 박스: 이미지 업로드 버튼 */}
-        <TouchableOpacity style={styles.uploadButton} onPress={handleUpload}>
-           <Text style={styles.uploadButtonText}>갤러리에서 선택</Text>
-        </TouchableOpacity>
-
-        {/* 세 번째 박스: 세부 설명 텍스트 박스 */}
-        <View style={styles.descriptionBox}>
-          <TextInput
-            style={styles.textInput}
-            multiline
-            placeholder="AI에게 전달할 요구사항을 적어주세요."
-            placeholderTextColor="#94A3B8"
-            value={description}
-            onChangeText={setDescription}
-            blurOnSubmit={false}
-          />
-        </View>
-
-        {/* 분석하기 버튼 */}
-        <TouchableOpacity
-          style={[styles.analyzeButton, isReady ? styles.analyzeButtonActive : styles.analyzeButtonDisabled]}
-          onPress={() => isReady && onAnalyze()}
-          disabled={!isReady}
-        >
-          <Text style={[styles.analyzeButtonText, isReady && styles.analyzeButtonTextActive]}>분석하기</Text>
-        </TouchableOpacity>
-      </ScrollView>
-
-      {/* 배경 장식 (pointerEvents="none"을 추가하여 터치 간섭 해결) */}
+    <View style={styles.screenContainer}>
       <View style={styles.waveLayerContainer} pointerEvents="none">
         <View style={[styles.waveCircle, styles.wave1]} />
         <View style={[styles.waveCircle, styles.wave2]} />
         <View style={[styles.waveCircle, styles.wave3]} />
       </View>
       <View style={styles.homeIndicatorLine} pointerEvents="none" />
-    </KeyboardAvoidingView>
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onBack} style={styles.headerBtn}>
+            <Text style={styles.backIcon}>‹</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>AI 채팅 분석</Text>
+          <View style={styles.headerRight}>
+            <Text style={styles.dotsIcon}>●●●</Text>
+          </View>
+        </View>
+
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={styles.title}>대화 내용을 넣어주세요</Text>
+
+          <View style={styles.imagePreviewBox}>
+            {imageUri ? (
+              <Image source={{ uri: imageUri }} style={styles.previewImage} resizeMode="contain" />
+            ) : (
+              <View style={styles.emptyImageBox}>
+                <Text style={styles.emptyText}>이미지를 첨부해 주세요</Text>
+              </View>
+            )}
+          </View>
+
+          <TouchableOpacity style={styles.uploadButton} onPress={handleUpload}>
+             <Text style={styles.uploadButtonText}>갤러리에서 선택</Text>
+          </TouchableOpacity>
+
+          <View style={styles.descriptionBox}>
+            <TextInput
+              style={styles.textInput}
+              multiline
+              placeholder="AI에게 궁금한 점이나 요구사항을 적어주세요."
+              placeholderTextColor="#94A3B8"
+              value={description}
+              onChangeText={setDescription}
+            />
+          </View>
+
+          <TouchableOpacity
+            style={[styles.analyzeButton, isReady ? styles.analyzeButtonActive : styles.analyzeButtonDisabled]}
+            onPress={() => isReady && onAnalyze(imageUri!, description)}
+            disabled={!isReady}
+          >
+            <Text style={[styles.analyzeButtonText, isReady && styles.analyzeButtonTextActive]}>분석하기</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 };
 
@@ -125,7 +119,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#EEE',
     backgroundColor: '#FFF',
-    zIndex: 100,
+    zIndex: 10,
   },
   headerBtn: { width: 40 },
   backIcon: { fontSize: 40, color: '#8B5CF6' },
@@ -172,10 +166,15 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     borderWidth: 1,
     borderColor: '#000',
-    padding: 15,
+    padding: 10,
     marginBottom: 60,
   },
-  textInput: { flex: 1, fontSize: 16, color: '#1F2937', textAlignVertical: 'top' },
+  textInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#1F2937',
+    textAlignVertical: 'top',
+  },
   analyzeButton: {
     width: width * 0.8,
     height: 60,
@@ -191,9 +190,10 @@ const styles = StyleSheet.create({
   analyzeButtonTextActive: { color: '#FFF' },
   waveLayerContainer: {
     position: 'absolute',
+    top: 0,
     bottom: 0,
-    width: '100%',
-    height: '40%',
+    left: 0,
+    right: 0,
     opacity: 0.3,
   },
   waveCircle: { position: 'absolute', width: width * 2, height: width * 2, borderRadius: width },
