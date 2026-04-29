@@ -179,3 +179,4 @@ const styles = StyleSheet.create({
 });
 
 export default AnalyzingScreen;
+// push용 수정22
