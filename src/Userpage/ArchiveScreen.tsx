@@ -12,16 +12,17 @@ const { width } = Dimensions.get('window');
 
 interface ArchiveScreenProps {
   onBack: () => void;
+  onSelectDetail: (archive: any) => void;
+  archives: any[];
+  onDelete: (id: number) => void;
 }
 
-const ArchiveScreen: React.FC<ArchiveScreenProps> = ({ onBack }) => {
-  // 가상의 보관함 데이터
-  const archives = [
-    { id: 1, title: '전남친과의 대화', date: '2023.10.25', score: 85 },
-    { id: 2, title: '소개팅남 첫 대화', date: '2023.11.02', score: 42 },
-    { id: 3, title: '회사 동료 분석', date: '2023.11.15', score: 67 },
-  ];
-
+const ArchiveScreen: React.FC<ArchiveScreenProps> = ({ 
+  onBack, 
+  onSelectDetail, 
+  archives,
+  onDelete 
+}) => {
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -36,15 +37,26 @@ const ArchiveScreen: React.FC<ArchiveScreenProps> = ({ onBack }) => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {archives.length > 0 ? (
           archives.map((item) => (
-            <TouchableOpacity key={item.id} style={styles.archiveCard}>
-              <View style={styles.cardInfo}>
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <Text style={styles.cardDate}>{item.date}</Text>
-              </View>
-              <View style={styles.scoreBadge}>
-                <Text style={styles.scoreText}>{item.score}%</Text>
-              </View>
-            </TouchableOpacity>
+            <View key={item.id} style={styles.archiveCardContainer}>
+              <TouchableOpacity 
+                style={styles.archiveCard} 
+                onPress={() => onSelectDetail(item)}
+              >
+                <View style={styles.cardInfo}>
+                  <Text style={styles.cardTitle}>{item.title}</Text>
+                  <Text style={styles.cardDate}>{item.date}</Text>
+                </View>
+                <View style={styles.scoreBadge}>
+                  <Text style={styles.scoreText}>{item.score}%</Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.deleteIconButton} 
+                onPress={() => onDelete(item.id)}
+              >
+                <Text style={styles.deleteIcon}>✕</Text>
+              </TouchableOpacity>
+            </View>
           ))
         ) : (
           <View style={styles.emptyContainer}>
@@ -53,7 +65,7 @@ const ArchiveScreen: React.FC<ArchiveScreenProps> = ({ onBack }) => {
         )}
       </ScrollView>
 
-      {/* Decorative Waves (Optional) */}
+      {/* Decorative Waves */}
       <View style={styles.waveLayerContainer} pointerEvents="none">
         <View style={[styles.waveCircle, styles.wave1]} />
         <View style={[styles.waveCircle, styles.wave2]} />
@@ -85,19 +97,33 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 100,
   },
+  archiveCardContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
   archiveCard: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: '#FFF',
     padding: 20,
     borderRadius: 15,
-    marginBottom: 15,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 5,
     elevation: 2,
+  },
+  deleteIconButton: {
+    padding: 10,
+    marginLeft: 5,
+  },
+  deleteIcon: {
+    fontSize: 18,
+    color: '#EF4444',
+    opacity: 0.6,
   },
   cardInfo: { flex: 1 },
   cardTitle: { fontSize: 16, fontWeight: '600', color: '#1F2937', marginBottom: 4 },

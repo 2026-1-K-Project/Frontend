@@ -84,6 +84,17 @@ const Mypage: React.FC<MypageProps> = ({
             <TouchableOpacity 
               style={styles.menuItem} 
               onPress={() => {
+                onNavigate('TRASH');
+                onClose();
+              }}
+            >
+              <Text style={styles.menuItemIcon}>🗑️</Text>
+              <Text style={styles.menuItemText}>휴지통</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              onPress={() => {
                 onNavigate('SETTINGS');
                 onClose();
               }}
