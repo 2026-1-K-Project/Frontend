@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,9 +6,13 @@ import {
   TouchableOpacity,
   Dimensions,
   ScrollView,
+  Alert,
+  Share,
+  Modal,
+  Pressable,
 } from 'react-native';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 interface ResultScreenProps {
   resultScore: number;
@@ -16,8 +20,54 @@ interface ResultScreenProps {
 }
 
 const ResultScreen: React.FC<ResultScreenProps> = ({ resultScore, onReset }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // 저장 성공 모달 상태 관리
+  const [saveStatus, setSaveStatus] = useState<{ visible: boolean; title: string; message: string }>({
+    visible: false,
+    title: '',
+    message: '',
+  });
 
-  // 섹션 타이틀 컴포넌트
+  const onShare = async () => {
+    setIsMenuOpen(false);
+    try {
+      await Share.share({
+        message: `나의 AI 채팅 분석 결과: 호감 지수 ${resultScore}%! 여러분도 분석해보세요! ✨`,
+      });
+    } catch (error: any) {
+      console.log(error.message);
+    }
+  };
+
+  const onSave = (type: string) => {
+    setIsMenuOpen(false);
+    
+    // 앱 테마에 맞는 커스텀 성공 화면 데이터 설정
+    setTimeout(() => {
+      setSaveStatus({
+        visible: true,
+        title: type === "이미지로 저장" ? "갤러리 저장 완료" : "보관함 저장 완료",
+        message: type === "이미지로 저장" 
+          ? "분석 리포트가 사진첩에\n안전하게 저장되었습니다! ✨" 
+          : "나중에 마이페이지 > 보관함에서\n이 기록을 다시 확인할 수 있어요. 📦",
+      });
+    }, 400);
+  };
+
+  const onDelete = () => {
+    setIsMenuOpen(false);
+    setTimeout(() => {
+      Alert.alert(
+        "기록 삭제", 
+        "정말 이 분석 리포트를 삭제하시겠습니까?",
+        [
+          { text: "취소", style: "cancel" },
+          { text: "삭제", onPress: onReset, style: "destructive" }
+        ]
+      );
+    }, 500);
+  };
+
   const SectionTitle = ({ title, emoji }: { title: string; emoji: string }) => (
     <View style={styles.sectionTitleContainer}>
       <Text style={styles.sectionEmoji}>{emoji}</Text>
@@ -33,9 +83,11 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ resultScore, onReset }) => 
           <Text style={styles.backIcon}>‹</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>종합 분석 리포트</Text>
-        <View style={styles.headerRight}>
-          <Text style={styles.dotsIcon}>●●●</Text>
-        </View>
+        <TouchableOpacity onPress={() => setIsMenuOpen(true)} style={styles.headerRight}>
+          <View style={styles.exportBadge}>
+            <Text style={styles.exportIconText}>📤</Text>
+          </View>
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -147,6 +199,88 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ resultScore, onReset }) => 
         <View style={{ height: 50 }} />
       </ScrollView>
 
+      {/* 1. 리포트 관리 메뉴 모달 */}
+      <Modal
+        visible={isMenuOpen}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setIsMenuOpen(false)}
+      >
+        <Pressable 
+          style={styles.modalOverlay} 
+          onPress={() => setIsMenuOpen(false)}
+        >
+          <View style={styles.menuContainer}>
+            <View style={styles.menuHandle} />
+            <Text style={styles.menuTitle}>리포트 관리 📤</Text>
+            
+            <TouchableOpacity style={styles.menuItem} onPress={onShare}>
+              <View style={[styles.menuIconBox, {backgroundColor: '#F5F3FF'}]}>
+                <Text style={styles.menuIcon}>📱</Text>
+              </View>
+              <Text style={styles.menuItemText}>결과 공유하기</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem} onPress={() => onSave("이미지로 저장")}>
+              <View style={[styles.menuIconBox, {backgroundColor: '#F5F3FF'}]}>
+                <Text style={styles.menuIcon}>🖼️</Text>
+              </View>
+              <Text style={styles.menuItemText}>이미지로 저장 (갤러리)</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem} onPress={() => onSave("보관함 저장")}>
+              <View style={[styles.menuIconBox, {backgroundColor: '#F5F3FF'}]}>
+                <Text style={styles.menuIcon}>📦</Text>
+              </View>
+              <Text style={styles.menuItemText}>내 보관함에 저장</Text>
+            </TouchableOpacity>
+
+            <View style={styles.menuSeparator} />
+
+            <TouchableOpacity style={[styles.menuItem, styles.deleteItem]} onPress={onDelete}>
+              <View style={[styles.menuIconBox, {backgroundColor: '#FEF2F2'}]}>
+                <Text style={styles.menuIcon}>🗑️</Text>
+              </View>
+              <Text style={[styles.menuItemText, {color: '#EF4444'}]}>이 기록 삭제하기</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.cancelButton} 
+              onPress={() => setIsMenuOpen(false)}
+            >
+              <Text style={styles.cancelButtonText}>닫기</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
+
+      {/* 2. 저장 성공 커스텀 모달 (Success UI) */}
+      <Modal
+        visible={saveStatus.visible}
+        transparent={true}
+        animationType="fade"
+      >
+        <View style={styles.successOverlay}>
+          <View style={styles.successCard}>
+            <View style={styles.successIconCircle}>
+              <Text style={styles.successIcon}>✓</Text>
+            </View>
+            <Text style={styles.successTitle}>{saveStatus.title}</Text>
+            <Text style={styles.successMessage}>{saveStatus.message}</Text>
+            
+            <TouchableOpacity 
+              style={styles.confirmButton} 
+              onPress={() => setSaveStatus({ ...saveStatus, visible: false })}
+            >
+              <Text style={styles.confirmButtonText}>확인</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <Text style={[styles.sparkle, { top: '35%', left: '20%' }]}>✦</Text>
+          <Text style={[styles.sparkle, { top: '30%', right: '25%' }]}>✧</Text>
+        </View>
+      </Modal>
+
       {/* 배경 장식 */}
       <View style={styles.waveLayerContainer} pointerEvents="none">
         <View style={[styles.waveCircle, styles.wave1]} />
@@ -164,13 +298,20 @@ const styles = StyleSheet.create({
   headerBtn: { width: 40 },
   backIcon: { fontSize: 40, color: '#8B5CF6' },
   headerTitle: { fontSize: 16, fontWeight: '800', color: '#1F2937' },
-  headerRight: { width: 40, alignItems: 'flex-end' },
-  dotsIcon: { fontSize: 12, color: '#D1D5DB', letterSpacing: 2 },
+  headerRight: { width: 40, alignItems: 'flex-end', justifyContent: 'center' },
+  exportBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F5F3FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  exportIconText: { fontSize: 16 },
 
   scrollView: { flex: 1 },
   scrollContent: { paddingHorizontal: 20, paddingTop: 20, zIndex: 10 },
 
-  // 메인 카드
   summaryCard: {
     backgroundColor: '#FFF', borderRadius: 30, padding: 30, alignItems: 'center',
     marginBottom: 25, elevation: 5, shadowColor: '#8B5CF6', shadowOpacity: 0.1, shadowRadius: 10,
@@ -183,16 +324,13 @@ const styles = StyleSheet.create({
   scoreLabel: { fontSize: 14, color: '#8B5CF6', fontWeight: '700' },
   summaryText: { fontSize: 18, fontWeight: '700', color: '#374151', textAlign: 'center', lineHeight: 26 },
 
-  // 섹션 타이틀
   sectionTitleContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 15, marginTop: 10 },
   sectionEmoji: { fontSize: 20, marginRight: 8 },
   sectionTitle: { fontSize: 18, fontWeight: '800', color: '#1F2937' },
 
-  // 공통 카드 스타일
   chartCard: { backgroundColor: '#FFF', borderRadius: 24, padding: 20, marginBottom: 25, borderWidth: 1, borderColor: '#F1F5F9' },
   chartLabel: { fontSize: 14, fontWeight: '700', color: '#64748B', marginBottom: 15 },
 
-  // 바 차트
   barChartContainer: { height: 40, flexDirection: 'row', borderRadius: 12, overflow: 'hidden', marginBottom: 20 },
   barLeft: { backgroundColor: '#C4B5FD', justifyContent: 'center', alignItems: 'center' },
   barRight: { backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center' },
@@ -208,7 +346,6 @@ const styles = StyleSheet.create({
   chip: { backgroundColor: '#F3F4F6', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   chipText: { fontSize: 13, color: '#4B5563', fontWeight: '600' },
 
-  // 성격 분석
   mbtiRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
   badge: { backgroundColor: '#F5F3FF', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12 },
   badgeText: { fontSize: 14, fontWeight: '800', color: '#7C3AED' },
@@ -222,7 +359,6 @@ const styles = StyleSheet.create({
   radarLabelLeft: { position: 'absolute', left: 40, fontSize: 12, fontWeight: '700' },
   radarLabelRight: { position: 'absolute', right: 40, fontSize: 12, fontWeight: '700' },
 
-  // 타임라인
   lineChartPlaceholder: { height: 120, borderLeftWidth: 2, borderBottomWidth: 2, borderColor: '#E2E8F0', marginBottom: 20, padding: 10 },
   lineChartPath: { position: 'absolute', width: '100%', height: 2, backgroundColor: '#8B5CF6', top: '50%', transform: [{rotate: '-20deg'}] },
   dot: { position: 'absolute', width: 10, height: 10, borderRadius: 5, backgroundColor: '#7C3AED' },
@@ -230,7 +366,6 @@ const styles = StyleSheet.create({
   highlightTitle: { fontSize: 14, fontWeight: '800', color: '#1F2937', marginBottom: 6 },
   highlightContent: { fontSize: 13, color: '#4B5563', lineHeight: 20 },
 
-  // 액션 가이드
   guideCard: { backgroundColor: '#FFF', borderRadius: 24, padding: 25, marginBottom: 30 },
   guideItem: { flexDirection: 'row', marginBottom: 20 },
   guideBullet: { fontSize: 20, marginRight: 15 },
@@ -248,6 +383,143 @@ const styles = StyleSheet.create({
   waveLayerContainer: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, opacity: 0.1 },
   waveCircle: { position: 'absolute', width: width * 2, height: width * 2, borderRadius: width },
   wave1: { backgroundColor: '#DDD6FE', bottom: -width * 1.5, left: -width * 0.5 },
+
+  // 모달 스타일 (공통)
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  menuContainer: {
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingHorizontal: 20,
+    paddingTop: 15,
+    paddingBottom: 40,
+  },
+  menuHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  menuTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1F2937',
+    marginBottom: 25,
+    textAlign: 'center',
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    marginBottom: 8,
+    borderRadius: 15,
+  },
+  menuIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  menuIcon: { fontSize: 20 },
+  menuItemText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  menuSeparator: {
+    height: 1,
+    backgroundColor: '#F1F5F9',
+    marginVertical: 10,
+  },
+  cancelButton: {
+    marginTop: 15,
+    backgroundColor: '#F8FAFC',
+    paddingVertical: 16,
+    borderRadius: 15,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+
+  // 성공 모달 스타일 (추가됨)
+  successOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(124, 58, 237, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  successCard: {
+    width: '100%',
+    backgroundColor: '#FFF',
+    borderRadius: 30,
+    padding: 30,
+    alignItems: 'center',
+    elevation: 20,
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+  },
+  successIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#F5F3FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#C4B5FD',
+  },
+  successIcon: {
+    fontSize: 40,
+    color: '#8B5CF6',
+    fontWeight: '800',
+  },
+  successTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1F2937',
+    marginBottom: 10,
+  },
+  successMessage: {
+    fontSize: 15,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 30,
+  },
+  confirmButton: {
+    width: '100%',
+    backgroundColor: '#8B5CF6',
+    paddingVertical: 16,
+    borderRadius: 18,
+    alignItems: 'center',
+  },
+  confirmButtonText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  sparkle: {
+    position: 'absolute',
+    color: '#FFF',
+    fontSize: 24,
+    opacity: 0.8,
+  },
 });
 
 export default ResultScreen;
