@@ -1,4 +1,7 @@
 export interface AnalysisData {
+  id?: string;
+  title?: string;
+  date?: string;
   resultScore: number;
   shareMe: number;
   sharePartner: number;
@@ -17,4 +20,5 @@ export interface AnalysisData {
   moment: string;
   tips: string;
   warning: string;
+  description?: string; // 사용자가 입력한 요구사항
 }
