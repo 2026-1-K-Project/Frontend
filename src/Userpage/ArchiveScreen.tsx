@@ -15,43 +15,82 @@ interface ArchiveScreenProps {
   onSelectDetail: (archive: any) => void;
   archives: any[];
   onDelete: (id: number) => void;
+  isDarkMode: boolean;
 }
 
-const ArchiveScreen: React.FC<ArchiveScreenProps> = ({ 
-  onBack, 
-  onSelectDetail, 
+const ArchiveScreen: React.FC<ArchiveScreenProps> = ({
+  onBack,
+  onSelectDetail,
   archives,
-  onDelete 
+  onDelete,
+  isDarkMode,
 }) => {
+  const theme = {
+    background: isDarkMode ? '#111827' : '#F8F9FE',
+    header: isDarkMode ? '#1F2937' : '#FFF',
+    card: isDarkMode ? '#1F2937' : '#FFF',
+    title: isDarkMode ? '#F9FAFB' : '#1F2937',
+    subText: isDarkMode ? '#9CA3AF' : '#94A3B8',
+    border: isDarkMode ? '#374151' : '#EEE',
+    badgeBg: isDarkMode ? '#312E81' : '#F5F3FF',
+    wave1: isDarkMode ? '#312E81' : '#DDD6FE',
+    wave2: isDarkMode ? '#4C1D95' : '#C4B5FD',
+  };
+
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: theme.header,
+            borderBottomColor: theme.border,
+          },
+        ]}
+      >
         <TouchableOpacity onPress={onBack} style={styles.headerBtn}>
           <Text style={styles.backIcon}>‹</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>보관함</Text>
+
+        <Text style={[styles.headerTitle, { color: theme.title }]}>
+          보관함
+        </Text>
+
         <View style={styles.headerRight} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {archives.length > 0 ? (
-          archives.map((item) => (
+          archives.map(item => (
             <View key={item.id} style={styles.archiveCardContainer}>
-              <TouchableOpacity 
-                style={styles.archiveCard} 
+              <TouchableOpacity
+                style={[
+                  styles.archiveCard,
+                  { backgroundColor: theme.card },
+                ]}
                 onPress={() => onSelectDetail(item)}
               >
                 <View style={styles.cardInfo}>
-                  <Text style={styles.cardTitle}>{item.title}</Text>
-                  <Text style={styles.cardDate}>{item.date}</Text>
+                  <Text style={[styles.cardTitle, { color: theme.title }]}>
+                    {item.title}
+                  </Text>
+                  <Text style={[styles.cardDate, { color: theme.subText }]}>
+                    {item.date}
+                  </Text>
                 </View>
-                <View style={styles.scoreBadge}>
+
+                <View
+                  style={[
+                    styles.scoreBadge,
+                    { backgroundColor: theme.badgeBg },
+                  ]}
+                >
                   <Text style={styles.scoreText}>{item.score}%</Text>
                 </View>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.deleteIconButton} 
+
+              <TouchableOpacity
+                style={styles.deleteIconButton}
                 onPress={() => onDelete(item.id)}
               >
                 <Text style={styles.deleteIcon}>✕</Text>
@@ -60,15 +99,28 @@ const ArchiveScreen: React.FC<ArchiveScreenProps> = ({
           ))
         ) : (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>보관된 분석 결과가 없습니다.</Text>
+            <Text style={[styles.emptyText, { color: theme.subText }]}>
+              보관된 분석 결과가 없습니다.
+            </Text>
           </View>
         )}
       </ScrollView>
 
-      {/* Decorative Waves */}
       <View style={styles.waveLayerContainer} pointerEvents="none">
-        <View style={[styles.waveCircle, styles.wave1]} />
-        <View style={[styles.waveCircle, styles.wave2]} />
+        <View
+          style={[
+            styles.waveCircle,
+            styles.wave1,
+            { backgroundColor: theme.wave1 },
+          ]}
+        />
+        <View
+          style={[
+            styles.waveCircle,
+            styles.wave2,
+            { backgroundColor: theme.wave2 },
+          ]}
+        />
       </View>
     </View>
   );
@@ -77,7 +129,6 @@ const ArchiveScreen: React.FC<ArchiveScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FE',
   },
   header: {
     height: 60,
@@ -86,12 +137,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEE',
-    backgroundColor: '#FFF',
   },
   headerBtn: { width: 40 },
   backIcon: { fontSize: 40, color: '#8B5CF6' },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: '#1F2937' },
+  headerTitle: { fontSize: 18, fontWeight: '700' },
   headerRight: { width: 40 },
   scrollContent: {
     padding: 20,
@@ -107,7 +156,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFF',
     padding: 20,
     borderRadius: 15,
     shadowColor: '#000',
@@ -126,24 +174,35 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   cardInfo: { flex: 1 },
-  cardTitle: { fontSize: 16, fontWeight: '600', color: '#1F2937', marginBottom: 4 },
-  cardDate: { fontSize: 12, color: '#94A3B8' },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  cardDate: {
+    fontSize: 12,
+  },
   scoreBadge: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#F5F3FF',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#A78BFA',
   },
-  scoreText: { fontSize: 14, fontWeight: '700', color: '#7C3AED' },
+  scoreText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#7C3AED',
+  },
   emptyContainer: {
     marginTop: 100,
     alignItems: 'center',
   },
-  emptyText: { color: '#94A3B8', fontSize: 16 },
+  emptyText: {
+    fontSize: 16,
+  },
   waveLayerContainer: {
     position: 'absolute',
     bottom: 0,
@@ -151,9 +210,20 @@ const styles = StyleSheet.create({
     height: '20%',
     opacity: 0.2,
   },
-  waveCircle: { position: 'absolute', width: width * 1.5, height: width * 1.5, borderRadius: width },
-  wave1: { backgroundColor: '#DDD6FE', bottom: -width * 1.2, left: -width * 0.3 },
-  wave2: { backgroundColor: '#C4B5FD', bottom: -width * 1.3, left: -width * 0.6 },
+  waveCircle: {
+    position: 'absolute',
+    width: width * 1.5,
+    height: width * 1.5,
+    borderRadius: width,
+  },
+  wave1: {
+    bottom: -width * 1.2,
+    left: -width * 0.3,
+  },
+  wave2: {
+    bottom: -width * 1.3,
+    left: -width * 0.6,
+  },
 });
 
 export default ArchiveScreen;
