@@ -1,11 +1,11 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Animated,
+  Dimensions,
+  Easing,
   StyleSheet,
   Text,
   View,
-  Dimensions,
-  Animated,
-  Easing,
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -14,150 +14,162 @@ interface AnalyzingScreenProps {
   isDarkMode: boolean;
 }
 
+const steps = [
+  '파일을 안전하게 업로드하고 있어요',
+  '대화 참여자와 메시지 흐름을 정리하고 있어요',
+  '호감 신호와 대화 균형을 계산하고 있어요',
+  '결정적 장면과 위험 신호를 찾고 있어요',
+  '바로 읽기 좋은 리포트로 다듬고 있어요',
+];
+
+const facts = [
+  '질문이 오가는 흐름은 관계 관심도를 보는 중요한 단서예요.',
+  '답장 속도보다 더 중요한 건 대화가 자연스럽게 이어지는지예요.',
+  '짧은 리액션도 반복되면 긍정 신호가 될 수 있어요.',
+  '캡처가 여러 장이면 순서대로 올릴수록 분석이 더 안정적이에요.',
+  '분석 결과는 단정이 아니라 다음 대화를 위한 참고 지표예요.',
+];
+
 const AnalyzingScreen: React.FC<AnalyzingScreenProps> = ({ isDarkMode }) => {
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const rotationAnim = useRef(new Animated.Value(0)).current;
-  // [추정 수정] 로딩 바가 멈춰있지 않고 무한히 흐르도록 애니메이션 값 추가
-  const barProgressAnim = useRef(new Animated.Value(-width * 0.6)).current;
+  const barAnim = useRef(new Animated.Value(0)).current;
+  const [stepIndex, setStepIndex] = useState(0);
+  const [factIndex, setFactIndex] = useState(0);
 
-  // [수정] 메인 컬러 및 인디케이터 컬러를 한층 연하고 부드러운 연보라색 계열로 최적화
   const theme = {
-    background: isDarkMode ? '#111827' : '#F4F3FF', // 라이트 모드 배경을 조금 더 맑은 연보라 빛으로 수정
-    circle: isDarkMode ? '#1F2937' : '#FFF',
-    mainText: isDarkMode ? '#F9FAFB' : '#6366F1',   // 진한 인디고에서 부드러운 연보라/블루스톤 계열로 수정
-    subText: isDarkMode ? '#C4B5FD' : '#A78BFA',    // 라이트 모드 서브 텍스트를 연보라색으로 변경
-    loadingBg: isDarkMode
-      ? 'rgba(255, 255, 255, 0.15)'
-      : 'rgba(167, 139, 250, 0.2)', // 로딩바 배경도 부드러운 연보라 투명도로 매칭
+    background: isDarkMode ? '#111827' : '#F4F3FF',
+    card: isDarkMode ? '#1F2937' : '#FFFFFF',
+    title: isDarkMode ? '#F9FAFB' : '#312E81',
+    text: isDarkMode ? '#E5E7EB' : '#4C1D95',
+    subText: isDarkMode ? '#C4B5FD' : '#7C3AED',
+    muted: isDarkMode ? '#9CA3AF' : '#64748B',
+    track: isDarkMode ? '#374151' : '#E9D5FF',
     wave1: isDarkMode ? '#312E81' : '#E0E7FF',
     wave2: isDarkMode ? '#4C1D95' : '#EDE9FE',
     wave3: isDarkMode ? '#6D28D9' : '#F5F3FF',
-    indicator: isDarkMode ? '#C4B5FD' : '#A78BFA',  // 메인 로딩 바와 하단 선을 화사한 연보라색으로 변경
+    factBg: isDarkMode ? '#111827' : '#F5F3FF',
   };
 
   useEffect(() => {
-    // 중앙 원 펄스 애니메이션
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
-          toValue: 1.12,
-          duration: 1200,
+          toValue: 1.08,
+          duration: 1000,
           useNativeDriver: true,
           easing: Easing.inOut(Easing.sin),
         }),
         Animated.timing(pulseAnim, {
           toValue: 1,
-          duration: 1200,
+          duration: 1000,
           useNativeDriver: true,
           easing: Easing.inOut(Easing.sin),
         }),
       ]),
     ).start();
 
-    // 반짝이 회전 애니메이션
     Animated.loop(
       Animated.timing(rotationAnim, {
         toValue: 1,
-        duration: 4000,
-        easing: Easing.linear,
+        duration: 6000,
         useNativeDriver: true,
+        easing: Easing.linear,
       }),
     ).start();
 
-    // [수정] 하단 로딩 바가 끊임없이 부드럽게 흐르는 무한 루프 애니메이션
     Animated.loop(
-      Animated.timing(barProgressAnim, {
-        toValue: width * 0.6,
-        duration: 1800,
+      Animated.timing(barAnim, {
+        toValue: 1,
+        duration: 4200,
+        useNativeDriver: false,
         easing: Easing.inOut(Easing.quad),
-        useNativeDriver: true,
-      })
+      }),
     ).start();
-  }, [pulseAnim, rotationAnim, barProgressAnim]);
+  }, [barAnim, pulseAnim, rotationAnim]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setStepIndex(prev => (prev + 1) % steps.length);
+      setFactIndex(prev => (prev + 1) % facts.length);
+    }, 2600);
+
+    return () => clearInterval(timer);
+  }, []);
 
   const spin = rotationAnim.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
   });
 
+  const progressWidth = barAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['18%', '92%'],
+  });
+
+  const visibleSteps = useMemo(
+    () =>
+      steps.map((step, index) => ({
+        step,
+        active: index === stepIndex,
+        done: index < stepIndex,
+      })),
+    [stepIndex],
+  );
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.waveLayerContainer} pointerEvents="none">
-        <View
-          style={[
-            styles.waveCircle,
-            styles.wave1,
-            { backgroundColor: theme.wave1 },
-          ]}
-        />
-        <View
-          style={[
-            styles.waveCircle,
-            styles.wave2,
-            { backgroundColor: theme.wave2 },
-          ]}
-        />
-        <View
-          style={[
-            styles.waveCircle,
-            styles.wave3,
-            { backgroundColor: theme.wave3 },
-          ]}
-        />
+        <View style={[styles.waveCircle, styles.wave1, { backgroundColor: theme.wave1 }]} />
+        <View style={[styles.waveCircle, styles.wave2, { backgroundColor: theme.wave2 }]} />
+        <View style={[styles.waveCircle, styles.wave3, { backgroundColor: theme.wave3 }]} />
       </View>
 
-      <View style={styles.content}>
-        <Animated.View
-          style={[
-            styles.mainCircle,
-            {
-              backgroundColor: theme.circle,
-              transform: [{ scale: pulseAnim }],
-            },
-          ]}
-        >
-          <Text style={styles.aiIcon}>🤍</Text>
+      <View style={[styles.card, { backgroundColor: theme.card }]}>
+        <Animated.View style={[styles.orbit, { transform: [{ rotate: spin }] }]}>
+          <View style={styles.orbitDot} />
         </Animated.View>
 
-        <Animated.View
-          style={[
-            styles.sparkleContainer,
-            { transform: [{ rotate: spin }] },
-          ]}
-        >
-
+        <Animated.View style={[styles.mainCircle, { transform: [{ scale: pulseAnim }] }]}>
+          <Text style={styles.aiText}>AI</Text>
         </Animated.View>
 
-        <View style={styles.textContainer}>
-          {/* [수정] 타이틀 및 서브 텍스트 문구 퀄리티 고급화 */}
-          <Text style={[styles.mainText, { color: theme.mainText }]}>
-            두 분의 대화 속 진심을 분석하고 있어요!
-          </Text>
-          <Text style={[styles.subText, { color: theme.subText }]}>
-            숨겨진 감정 시그널을 찾아내는 중입니다...
-          </Text>
+        <Text style={[styles.title, { color: theme.title }]}>대화의 신호를 읽는 중</Text>
+        <Text style={[styles.subtitle, { color: theme.subText }]}>
+          관계 흐름, 판단 근거, 추천 멘트까지 정리하고 있어요.
+        </Text>
+
+        <View style={[styles.progressTrack, { backgroundColor: theme.track }]}>
+          <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
         </View>
 
-        <View style={[styles.loadingBarBg, { backgroundColor: theme.loadingBg }]}>
-          {/* [수정] 정적으로 멈춰있던 바를 흐르는 애니메이션 뷰로 교체 */}
-          <Animated.View
-            style={[
-              styles.loadingBarFill,
-              {
-                backgroundColor: theme.indicator,
-                transform: [{ translateX: barProgressAnim }]
-              }
-            ]}
-          />
+        <View style={styles.stepList}>
+          {visibleSteps.map(item => (
+            <View key={item.step} style={styles.stepRow}>
+              <View
+                style={[
+                  styles.stepDot,
+                  { backgroundColor: item.active || item.done ? '#8B5CF6' : theme.track },
+                ]}
+              />
+              <Text
+                style={[
+                  styles.stepText,
+                  { color: item.active ? theme.text : theme.muted },
+                  item.active && styles.stepTextActive,
+                ]}
+              >
+                {item.step}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={[styles.factBox, { backgroundColor: theme.factBg }]}>
+          <Text style={styles.factLabel}>기다리는 동안 참고하기</Text>
+          <Text style={[styles.factText, { color: theme.muted }]}>{facts[factIndex]}</Text>
         </View>
       </View>
-
-      <View
-        style={[
-          styles.homeIndicatorLine,
-          { backgroundColor: theme.indicator },
-        ]}
-      />
     </View>
   );
 };
@@ -165,74 +177,116 @@ const AnalyzingScreen: React.FC<AnalyzingScreenProps> = ({ isDarkMode }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
+    paddingHorizontal: 22,
   },
-  content: {
+  card: {
+    width: Math.min(width - 44, 440),
+    borderRadius: 24,
+    paddingHorizontal: 22,
+    paddingTop: 34,
+    paddingBottom: 26,
     alignItems: 'center',
-    zIndex: 10,
+    elevation: 8,
+  },
+  orbit: {
+    position: 'absolute',
+    top: 17,
+    width: 154,
+    height: 154,
+    borderRadius: 77,
+    borderWidth: 1,
+    borderColor: '#DDD6FE',
+  },
+  orbitDot: {
+    position: 'absolute',
+    top: 10,
+    left: 70,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#8B5CF6',
   },
   mainCircle: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
+    width: 118,
+    height: 118,
+    borderRadius: 59,
+    backgroundColor: '#F5F3FF',
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 12,
-    /* [수정] 그림자 컬러 역시 진보라에서 은은한 파스텔 연보라색(#A78BFA)으로 변경 */
-    shadowColor: '#A78BFA',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    marginBottom: 44,
+    marginBottom: 24,
+    borderWidth: 5,
+    borderColor: '#DDD6FE',
   },
-  aiIcon: {
-    fontSize: 54,
+  aiText: {
+    fontSize: 34,
+    fontWeight: '900',
+    color: '#7C3AED',
   },
-  sparkleContainer: {
-    position: 'absolute',
-    top: -25,
-    width: 190,
-    height: 190,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-  },
-  outerSparkle: {
-    fontSize: 26,
-  },
-  textContainer: {
-    alignItems: 'center',
-    marginBottom: 35,
-    paddingHorizontal: 20,
-  },
-  /* [수정] 텍스트 크기 밸런스 및 폰트 무드 세련되게 변경 */
-  mainText: {
-    fontSize: 19.5,
-    fontWeight: '800',
-    marginBottom: 12,
-    letterSpacing: -0.4,
+  title: {
+    fontSize: 22,
+    fontWeight: '900',
     textAlign: 'center',
+    marginBottom: 10,
   },
-  subText: {
-    fontSize: 14.5,
-    fontWeight: '500',
-    letterSpacing: -0.2,
+  subtitle: {
+    fontSize: 14,
+    fontWeight: '700',
     textAlign: 'center',
+    lineHeight: 21,
+    marginBottom: 24,
   },
-  loadingBarBg: {
-    width: width * 0.55,
-    height: 6,
-    borderRadius: 3,
+  progressTrack: {
+    width: '100%',
+    height: 9,
+    borderRadius: 999,
     overflow: 'hidden',
-    position: 'relative',
+    marginBottom: 24,
   },
-  /* [수정] 무한 로딩 바 크기 및 형태 정의 */
-  loadingBarFill: {
+  progressFill: {
     height: '100%',
-    width: '50%', // 전체 트랙의 절반 크기로 바를 형성하여 좌우로 흐르게 조절
-    borderRadius: 3,
-    position: 'absolute',
-    left: 0,
+    borderRadius: 999,
+    backgroundColor: '#8B5CF6',
+  },
+  stepList: {
+    width: '100%',
+    gap: 11,
+    marginBottom: 22,
+  },
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  stepDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    marginRight: 10,
+  },
+  stepText: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  stepTextActive: {
+    fontWeight: '900',
+  },
+  factBox: {
+    width: '100%',
+    borderRadius: 16,
+    padding: 15,
+  },
+  factLabel: {
+    color: '#7C3AED',
+    fontSize: 12,
+    fontWeight: '900',
+    marginBottom: 6,
+  },
+  factText: {
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 19,
   },
   waveLayerContainer: {
     position: 'absolute',
@@ -246,30 +300,9 @@ const styles = StyleSheet.create({
     height: width * 2,
     borderRadius: width,
   },
-  wave1: {
-    bottom: -width * 1.3,
-    left: -width * 0.4,
-    opacity: 0.5,
-  },
-  wave2: {
-    bottom: -width * 1.45,
-    left: -width * 0.7,
-    opacity: 0.6,
-  },
-  wave3: {
-    bottom: -width * 1.55,
-    left: -width * 0.2,
-    opacity: 0.8,
-  },
-  homeIndicatorLine: {
-    position: 'absolute',
-    bottom: 15,
-    alignSelf: 'center',
-    width: 140,
-    height: 5,
-    borderRadius: 10,
-    opacity: 0.15,
-  },
+  wave1: { bottom: -width * 1.3, left: -width * 0.4, opacity: 0.5 },
+  wave2: { bottom: -width * 1.45, left: -width * 0.7, opacity: 0.6 },
+  wave3: { bottom: -width * 1.55, left: -width * 0.2, opacity: 0.8 },
 });
 
 export default AnalyzingScreen;

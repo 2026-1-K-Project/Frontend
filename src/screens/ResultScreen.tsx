@@ -68,13 +68,13 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
             <Text style={styles.scoreLabel}>관계 지수</Text>
           </View>
           <Text style={[styles.summaryText, { color: theme.subText }]}>
-            {data.resultScore >= 80
-              ? '대화 흐름이 긍정적입니다. 관심 신호와 상호작용이 비교적 잘 나타납니다.'
-              : data.resultScore >= 50
-                ? '긍정적인 요소가 있지만 관계 확신에는 추가 대화가 필요합니다.'
-                : '아직은 신중하게 접근하는 편이 좋습니다.'}
+            {data.analysisSummary || defaultSummary(data.resultScore)}
           </Text>
         </View>
+
+        <Section title="판단 근거" theme={theme}>
+          <BulletList items={data.evidence || []} fallback="분석 근거를 정리하는 중입니다." />
+        </Section>
 
         <Section title="대화 흐름" theme={theme}>
           <Metric label="내 대화 비율" value={`${data.shareMe}%`} />
@@ -109,8 +109,22 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
           <Text style={[styles.bodyText, { color: theme.subText }]}>{data.tips}</Text>
         </Section>
 
+        <Section title="다음에 보내기 좋은 질문" theme={theme}>
+          <BulletList
+            items={data.recommendedQuestions || []}
+            fallback="상대가 부담 없이 답할 수 있는 가벼운 질문부터 이어가 보세요."
+          />
+        </Section>
+
+        <Section title="추천 답장 예시" theme={theme}>
+          <BulletList
+            items={data.recommendedReplies || []}
+            fallback="상대의 최근 관심사에 맞춰 짧고 자연스럽게 답장해 보세요."
+          />
+        </Section>
+
         <Section title="주의할 점" theme={theme}>
-          <Text style={[styles.bodyText, { color: theme.subText }]}>{data.warning}</Text>
+          <BulletList items={data.riskSignals || [data.warning]} fallback={data.warning} danger />
         </Section>
 
         {!!data.description && (
@@ -125,6 +139,16 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
       </ScrollView>
     </View>
   );
+};
+
+const defaultSummary = (score: number) => {
+  if (score >= 80) {
+    return '대화 흐름이 긍정적입니다. 관심 신호와 상호작용이 비교적 잘 나타납니다.';
+  }
+  if (score >= 50) {
+    return '긍정적인 요소가 있지만 관계 확신에는 추가 대화가 필요합니다.';
+  }
+  return '아직은 신중하게 접근하는 편이 좋습니다.';
 };
 
 const Section = ({
@@ -148,6 +172,32 @@ const Metric = ({ label, value }: { label: string; value: string }) => (
     <Text style={styles.metricValue}>{value}</Text>
   </View>
 );
+
+const BulletList = ({
+  items,
+  fallback,
+  danger = false,
+}: {
+  items: string[];
+  fallback: string;
+  danger?: boolean;
+}) => {
+  const visibleItems = items.filter(Boolean);
+  if (visibleItems.length === 0) {
+    return <Text style={styles.bodyText}>{fallback}</Text>;
+  }
+
+  return (
+    <View style={styles.bulletList}>
+      {visibleItems.map((item, index) => (
+        <View key={`${item}_${index}`} style={styles.bulletRow}>
+          <Text style={[styles.bulletMark, danger && styles.dangerText]}>•</Text>
+          <Text style={[styles.bulletText, danger && styles.dangerText]}>{item}</Text>
+        </View>
+      ))}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
@@ -211,7 +261,12 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   keywordText: { color: '#6D28D9', fontSize: 13, fontWeight: '800' },
-  bodyText: { fontSize: 14, lineHeight: 22, fontWeight: '600' },
+  bodyText: { color: '#64748B', fontSize: 14, lineHeight: 22, fontWeight: '600' },
+  bulletList: { gap: 10 },
+  bulletRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  bulletMark: { color: '#8B5CF6', fontSize: 18, fontWeight: '900', marginRight: 8, lineHeight: 22 },
+  bulletText: { flex: 1, color: '#64748B', fontSize: 14, lineHeight: 22, fontWeight: '600' },
+  dangerText: { color: '#DC2626' },
   emptyText: { fontSize: 16, fontWeight: '800', marginBottom: 18 },
   primaryButton: {
     width: Math.min(width - 40, 440),
