@@ -1,11 +1,11 @@
 import React from 'react';
 import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
   Dimensions,
   SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -38,124 +38,54 @@ const Mypage: React.FC<MypageProps> = ({
   if (!isOpen) return null;
 
   const theme = {
-    drawer: isDarkMode ? '#1F2937' : '#FFF',
+    drawer: isDarkMode ? '#1F2937' : '#FFFFFF',
     border: isDarkMode ? '#374151' : '#F3F4F6',
     title: isDarkMode ? '#F9FAFB' : '#1F2937',
     text: isDarkMode ? '#E5E7EB' : '#4B5563',
     subText: isDarkMode ? '#9CA3AF' : '#6B7280',
-    menuBg: isDarkMode ? '#374151' : 'transparent',
     profileBg: isDarkMode ? '#312E81' : '#DDD6FE',
   };
 
   return (
     <View style={styles.overlay}>
-      <TouchableOpacity
-        style={styles.backDrop}
-        activeOpacity={1}
-        onPress={onClose}
-      />
+      <TouchableOpacity style={styles.backDrop} activeOpacity={1} onPress={onClose} />
 
-      <View
-        style={[
-          styles.drawerContainer,
-          { backgroundColor: theme.drawer },
-        ]}
-      >
+      <View style={[styles.drawerContainer, { backgroundColor: theme.drawer }]}>
         <SafeAreaView style={styles.safeArea}>
-          <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-            <Text style={styles.closeIcon}>×</Text>
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <Text style={styles.closeText}>×</Text>
           </TouchableOpacity>
 
-          <View
-            style={[
-              styles.profileSection,
-              { borderBottomColor: theme.border },
-            ]}
-          >
+          <View style={[styles.profileSection, { borderBottomColor: theme.border }]}>
+            <View style={[styles.profileImagePlaceholder, { backgroundColor: theme.profileBg }]}>
+              <Text style={styles.profileInitial}>
+                {isLoggedIn && userInfo ? userInfo.name.slice(0, 1) : '?'}
+              </Text>
+            </View>
+
             {isLoggedIn && userInfo ? (
               <>
-                <View
-                  style={[
-                    styles.profileImagePlaceholder,
-                    { backgroundColor: theme.profileBg },
-                  ]}
-                >
-                  <Text style={styles.profileInitial}>{userInfo.name[0]}</Text>
-                </View>
-
-                <Text style={[styles.userName, { color: theme.title }]}>
-                  {userInfo.name}
-                </Text>
-
-                <Text style={[styles.userEmail, { color: theme.subText }]}>
-                  {userInfo.email}
-                </Text>
+                <Text style={[styles.userName, { color: theme.title }]}>{userInfo.name}</Text>
+                <Text style={[styles.userEmail, { color: theme.subText }]}>{userInfo.email}</Text>
               </>
             ) : (
               <>
-                <View
-                  style={[
-                    styles.profileImagePlaceholder,
-                    { backgroundColor: theme.profileBg },
-                  ]}
-                >
-                  <Text style={styles.profileInitial}>?</Text>
-                </View>
-
-                <Text style={[styles.userName, { color: theme.title }]}>
-                  로그인이 필요합니다
-                </Text>
-
-                <TouchableOpacity style={styles.loginBtn} onPress={onLoginPress}>
-                  <Text style={styles.loginBtnText}>로그인 / 회원가입</Text>
+                <Text style={[styles.userName, { color: theme.title }]}>로그인이 필요합니다</Text>
+                <TouchableOpacity style={styles.loginButton} onPress={onLoginPress}>
+                  <Text style={styles.loginButtonText}>로그인 / 회원가입</Text>
                 </TouchableOpacity>
               </>
             )}
           </View>
 
           <View style={styles.menuList}>
-            <TouchableOpacity
-              style={[styles.menuItem, { backgroundColor: theme.menuBg }]}
-              onPress={() => {
-                onNavigate('ARCHIVE');
-                onClose();
-              }}
-            >
-              <Text style={styles.menuItemIcon}>📦</Text>
-              <Text style={[styles.menuItemText, { color: theme.text }]}>
-                보관함
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.menuItem, { backgroundColor: theme.menuBg }]}
-              onPress={() => {
-                onNavigate('TRASH');
-                onClose();
-              }}
-            >
-              <Text style={styles.menuItemIcon}>🗑️</Text>
-              <Text style={[styles.menuItemText, { color: theme.text }]}>
-                휴지통
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.menuItem, { backgroundColor: theme.menuBg }]}
-              onPress={() => {
-                onNavigate('SETTINGS');
-                onClose();
-              }}
-            >
-              <Text style={styles.menuItemIcon}>⚙️</Text>
-              <Text style={[styles.menuItemText, { color: theme.text }]}>
-                설정
-              </Text>
-            </TouchableOpacity>
+            <MenuItem label="보관함" onPress={() => onNavigate('ARCHIVE')} color={theme.text} />
+            <MenuItem label="휴지통" onPress={() => onNavigate('TRASH')} color={theme.text} />
+            <MenuItem label="설정" onPress={() => onNavigate('SETTINGS')} color={theme.text} />
           </View>
 
           {isLoggedIn && (
-            <TouchableOpacity style={styles.logoutBtn} onPress={onLogout}>
+            <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
               <Text style={styles.logoutText}>로그아웃</Text>
             </TouchableOpacity>
           )}
@@ -164,6 +94,21 @@ const Mypage: React.FC<MypageProps> = ({
     </View>
   );
 };
+
+const MenuItem = ({
+  label,
+  onPress,
+  color,
+}: {
+  label: string;
+  onPress: () => void;
+  color: string;
+}) => (
+  <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+    <Text style={[styles.menuItemText, { color }]}>{label}</Text>
+    <Text style={styles.menuArrow}>›</Text>
+  </TouchableOpacity>
+);
 
 const styles = StyleSheet.create({
   overlay: {
@@ -182,95 +127,86 @@ const styles = StyleSheet.create({
   drawerContainer: {
     width: width * 0.75,
     height: '100%',
-    borderTopLeftRadius: 30,
-    borderBottomLeftRadius: 30,
+    borderTopLeftRadius: 28,
+    borderBottomLeftRadius: 28,
     paddingHorizontal: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: -5, height: 0 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
     elevation: 10,
   },
-  safeArea: {
-    flex: 1,
-  },
-  closeBtn: {
+  safeArea: { flex: 1 },
+  closeButton: {
     alignSelf: 'flex-end',
     padding: 10,
     marginTop: 10,
   },
-  closeIcon: {
-    fontSize: 36,
+  closeText: {
+    fontSize: 34,
     color: '#7C3AED',
     fontWeight: '300',
   },
   profileSection: {
     alignItems: 'center',
-    marginVertical: 30,
-    paddingBottom: 30,
+    marginVertical: 24,
+    paddingBottom: 28,
     borderBottomWidth: 1,
   },
   profileImagePlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
+    width: 78,
+    height: 78,
+    borderRadius: 39,
     alignItems: 'center',
-    marginBottom: 15,
+    justifyContent: 'center',
+    marginBottom: 14,
   },
   profileInitial: {
-    fontSize: 32,
+    fontSize: 30,
     color: '#7C3AED',
-    fontWeight: '700',
+    fontWeight: '900',
   },
   userName: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '900',
     marginBottom: 5,
   },
-  userEmail: {
-    fontSize: 14,
-  },
-  loginBtn: {
-    marginTop: 15,
+  userEmail: { fontSize: 14, fontWeight: '600' },
+  loginButton: {
+    marginTop: 14,
     backgroundColor: '#8B5CF6',
-    paddingHorizontal: 20,
+    paddingHorizontal: 18,
     paddingVertical: 10,
-    borderRadius: 20,
+    borderRadius: 18,
   },
-  loginBtnText: {
-    color: '#FFF',
-    fontWeight: '600',
+  loginButtonText: {
+    color: '#FFFFFF',
     fontSize: 14,
+    fontWeight: '800',
   },
-  menuList: {
-    flex: 1,
-    marginTop: 20,
-  },
+  menuList: { flex: 1, marginTop: 12 },
   menuItem: {
+    height: 54,
+    borderRadius: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 15,
-    paddingHorizontal: 10,
-    marginBottom: 10,
-    borderRadius: 12,
-  },
-  menuItemIcon: {
-    fontSize: 22,
-    marginRight: 15,
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    marginBottom: 8,
   },
   menuItemText: {
-    fontSize: 18,
-    fontWeight: '500',
+    fontSize: 17,
+    fontWeight: '800',
   },
-  logoutBtn: {
+  menuArrow: {
+    fontSize: 24,
+    color: '#A78BFA',
+    fontWeight: '700',
+  },
+  logoutButton: {
     paddingVertical: 20,
     alignItems: 'center',
   },
   logoutText: {
     color: '#EF4444',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '800',
   },
 });
 
