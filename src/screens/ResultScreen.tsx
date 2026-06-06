@@ -7,7 +7,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { AnalysisData } from '../types/Analysis';
+import {
+  AiAvoidMessage,
+  AiConversationEvidence,
+  AiNextAction,
+  AnalysisData,
+} from '../types/Analysis';
 
 const { width } = Dimensions.get('window');
 
@@ -46,6 +51,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
   }
 
   const data = resultData;
+  const ai = data.aiDeepAnalysis;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -68,9 +74,31 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
             <Text style={styles.scoreLabel}>관계 지수</Text>
           </View>
           <Text style={[styles.summaryText, { color: theme.subText }]}>
-            {data.analysisSummary || defaultSummary(data.resultScore)}
+            {ai?.oneLineSummary || data.analysisSummary || defaultSummary(data.resultScore)}
           </Text>
         </View>
+
+        {ai && (
+          <Section title="AI 핵심 판단" theme={theme}>
+            <View style={styles.verdictGrid}>
+              <MiniCard label="결론" value={ai.verdict} />
+              <MiniCard label="확신도" value={`${ai.confidence}%`} />
+              <MiniCard label="관계 단계" value={ai.relationshipStage} wide />
+            </View>
+          </Section>
+        )}
+
+        {ai && (
+          <Section title="실제 대화 기반 호감 신호" theme={theme}>
+            <EvidenceList items={ai.positiveSignals} positive />
+          </Section>
+        )}
+
+        {ai && (
+          <Section title="실제 대화 기반 위험 신호" theme={theme}>
+            <EvidenceList items={ai.riskSignals} />
+          </Section>
+        )}
 
         <Section title="판단 근거" theme={theme}>
           <BulletList items={data.evidence || []} fallback="분석 근거를 정리하는 중입니다." />
@@ -99,15 +127,34 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
           <Metric label="외향성" value={`${data.bigFive.extraversion}%`} />
           <Metric label="친화성" value={`${data.bigFive.agreeableness}%`} />
           <Metric label="개방성" value={`${data.bigFive.openness}%`} />
+          {!!ai?.counterpartyStyle && <Text style={[styles.bodyText, styles.topGap]}>{ai.counterpartyStyle}</Text>}
         </Section>
 
+        {!!ai?.userPattern && (
+          <Section title="내 대화 패턴" theme={theme}>
+            <Text style={styles.bodyText}>{ai.userPattern}</Text>
+          </Section>
+        )}
+
         <Section title="결정적 순간" theme={theme}>
-          <Text style={[styles.bodyText, { color: theme.subText }]}>{data.moment}</Text>
+          <Text style={styles.bodyText}>{data.moment}</Text>
         </Section>
 
         <Section title="추천 행동" theme={theme}>
-          <Text style={[styles.bodyText, { color: theme.subText }]}>{data.tips}</Text>
+          <Text style={styles.bodyText}>{data.tips}</Text>
         </Section>
+
+        {ai && (
+          <Section title="바로 보낼 수 있는 멘트" theme={theme}>
+            <ActionList items={ai.nextActions} />
+          </Section>
+        )}
+
+        {ai && (
+          <Section title="피해야 할 멘트" theme={theme}>
+            <AvoidList items={ai.avoidMessages} />
+          </Section>
+        )}
 
         <Section title="다음에 보내기 좋은 질문" theme={theme}>
           <BulletList
@@ -129,7 +176,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
 
         {!!data.description && (
           <Section title="요청 내용" theme={theme}>
-            <Text style={[styles.bodyText, { color: theme.subText }]}>{data.description}</Text>
+            <Text style={styles.bodyText}>{data.description}</Text>
           </Section>
         )}
 
@@ -172,6 +219,72 @@ const Metric = ({ label, value }: { label: string; value: string }) => (
     <Text style={styles.metricValue}>{value}</Text>
   </View>
 );
+
+const MiniCard = ({ label, value, wide = false }: { label: string; value: string; wide?: boolean }) => (
+  <View style={[styles.miniCard, wide && styles.miniCardWide]}>
+    <Text style={styles.miniLabel}>{label}</Text>
+    <Text style={styles.miniValue}>{value}</Text>
+  </View>
+);
+
+const EvidenceList = ({ items, positive = false }: { items: AiConversationEvidence[]; positive?: boolean }) => {
+  if (!items || items.length === 0) {
+    return <Text style={styles.bodyText}>실제 대화 예시 기반 근거가 충분하지 않습니다.</Text>;
+  }
+
+  return (
+    <View style={styles.cardList}>
+      {items.map((item, index) => (
+        <View key={`${item.label}_${index}`} style={styles.evidenceCard}>
+          <View style={styles.evidenceHeader}>
+            <Text style={[styles.evidenceLabel, positive ? styles.positiveText : styles.dangerText]}>
+              {item.label}
+            </Text>
+            <Text style={styles.strengthText}>{item.strength}%</Text>
+          </View>
+          {!!item.quote && <Text style={styles.quoteText}>“{item.quote}”</Text>}
+          <Text style={styles.bodyText}>{item.reason}</Text>
+        </View>
+      ))}
+    </View>
+  );
+};
+
+const ActionList = ({ items }: { items: AiNextAction[] }) => {
+  if (!items || items.length === 0) {
+    return <Text style={styles.bodyText}>가볍게 이어갈 수 있는 질문부터 시작해 보세요.</Text>;
+  }
+
+  return (
+    <View style={styles.cardList}>
+      {items.map((item, index) => (
+        <View key={`${item.title}_${index}`} style={styles.evidenceCard}>
+          <Text style={styles.evidenceLabel}>{item.title}</Text>
+          <Text style={styles.messageText}>“{item.message}”</Text>
+          <Text style={styles.bodyText}>{item.why}</Text>
+        </View>
+      ))}
+    </View>
+  );
+};
+
+const AvoidList = ({ items }: { items: AiAvoidMessage[] }) => {
+  if (!items || items.length === 0) {
+    return <Text style={styles.bodyText}>직접적인 확인 질문은 조금 더 관계가 무르익은 뒤가 좋습니다.</Text>;
+  }
+
+  return (
+    <View style={styles.cardList}>
+      {items.map((item, index) => (
+        <View key={`${item.message}_${index}`} style={styles.evidenceCard}>
+          <Text style={styles.dangerText}>피하기</Text>
+          <Text style={styles.messageText}>“{item.message}”</Text>
+          <Text style={styles.bodyText}>{item.why}</Text>
+        </View>
+      ))}
+    </View>
+  );
+};
 
 const BulletList = ({
   items,
@@ -245,6 +358,17 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   sectionTitle: { fontSize: 17, fontWeight: '900', marginBottom: 12 },
+  verdictGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  miniCard: {
+    flex: 1,
+    minWidth: 120,
+    borderRadius: 14,
+    backgroundColor: '#F5F3FF',
+    padding: 13,
+  },
+  miniCardWide: { flexBasis: '100%' },
+  miniLabel: { color: '#7C3AED', fontSize: 12, fontWeight: '900', marginBottom: 6 },
+  miniValue: { color: '#1E1B4B', fontSize: 15, fontWeight: '900', lineHeight: 20 },
   metricRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -262,11 +386,41 @@ const styles = StyleSheet.create({
   },
   keywordText: { color: '#6D28D9', fontSize: 13, fontWeight: '800' },
   bodyText: { color: '#64748B', fontSize: 14, lineHeight: 22, fontWeight: '600' },
+  topGap: { marginTop: 12 },
+  cardList: { gap: 12 },
+  evidenceCard: {
+    borderRadius: 14,
+    backgroundColor: '#F8FAFC',
+    padding: 14,
+  },
+  evidenceHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  evidenceLabel: { color: '#7C3AED', fontSize: 14, fontWeight: '900', marginBottom: 7 },
+  positiveText: { color: '#059669' },
+  dangerText: { color: '#DC2626', fontWeight: '900' },
+  strengthText: { color: '#8B5CF6', fontSize: 12, fontWeight: '900' },
+  quoteText: {
+    color: '#312E81',
+    fontSize: 14,
+    fontWeight: '900',
+    lineHeight: 21,
+    marginBottom: 8,
+  },
+  messageText: {
+    color: '#312E81',
+    fontSize: 14,
+    fontWeight: '900',
+    lineHeight: 21,
+    marginBottom: 8,
+  },
   bulletList: { gap: 10 },
   bulletRow: { flexDirection: 'row', alignItems: 'flex-start' },
   bulletMark: { color: '#8B5CF6', fontSize: 18, fontWeight: '900', marginRight: 8, lineHeight: 22 },
   bulletText: { flex: 1, color: '#64748B', fontSize: 14, lineHeight: 22, fontWeight: '600' },
-  dangerText: { color: '#DC2626' },
   emptyText: { fontSize: 16, fontWeight: '800', marginBottom: 18 },
   primaryButton: {
     width: Math.min(width - 40, 440),
