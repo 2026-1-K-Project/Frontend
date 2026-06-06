@@ -20,5 +20,10 @@ export interface AnalysisData {
   moment: string;
   tips: string;
   warning: string;
-  description?: string; // 사용자가 입력한 요구사항
+  description?: string;
+  analysisSummary?: string;
+  evidence?: string[];
+  riskSignals?: string[];
+  recommendedQuestions?: string[];
+  recommendedReplies?: string[];
 }
