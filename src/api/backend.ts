@@ -105,8 +105,9 @@ export const backendApi = {
     );
   },
 
-  getAppResult(reportId: number) {
-    return requestJson<AnalysisData>(`/api/reports/${reportId}/app-result`);
+  getAppResult(reportId: number, memberId?: number) {
+    const query = memberId ? `?memberId=${memberId}` : '';
+    return requestJson<AnalysisData>(`/api/reports/${reportId}/app-result${query}`);
   },
 
   listReports(memberId?: number) {
@@ -119,20 +120,23 @@ export const backendApi = {
     return requestJson<ReportListItem[]>(`/api/reports/trash${query}`);
   },
 
-  moveToTrash(reportId: number) {
-    return requestJson<ReportListItem>(`/api/reports/${reportId}/trash`, {
+  moveToTrash(reportId: number, memberId?: number) {
+    const query = memberId ? `?memberId=${memberId}` : '';
+    return requestJson<ReportListItem>(`/api/reports/${reportId}/trash${query}`, {
       method: 'PATCH',
     });
   },
 
-  restoreReport(reportId: number) {
-    return requestJson<ReportListItem>(`/api/reports/${reportId}/restore`, {
+  restoreReport(reportId: number, memberId?: number) {
+    const query = memberId ? `?memberId=${memberId}` : '';
+    return requestJson<ReportListItem>(`/api/reports/${reportId}/restore${query}`, {
       method: 'PATCH',
     });
   },
 
-  deleteReport(reportId: number) {
-    return requestJson<void>(`/api/reports/${reportId}`, {
+  deleteReport(reportId: number, memberId?: number) {
+    const query = memberId ? `?memberId=${memberId}` : '';
+    return requestJson<void>(`/api/reports/${reportId}${query}`, {
       method: 'DELETE',
     });
   },

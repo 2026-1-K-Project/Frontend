@@ -89,7 +89,7 @@ const App = () => {
         myName: names?.myName,
         targetName: names?.targetName,
       });
-      const result = await backendApi.getAppResult(upload.reportId);
+      const result = await backendApi.getAppResult(upload.reportId, userInfo?.memberId);
       setAnalysisResult(result);
       await refreshReports(userInfo?.memberId);
       setCurrentScreen('RESULT');
@@ -101,7 +101,7 @@ const App = () => {
 
   const handleArchiveDelete = async (reportId: number) => {
     try {
-      await backendApi.moveToTrash(reportId);
+      await backendApi.moveToTrash(reportId, userInfo?.memberId);
       await refreshReports();
     } catch (error: any) {
       Alert.alert('이동 실패', error?.message || '휴지통으로 이동하지 못했습니다.');
@@ -110,7 +110,7 @@ const App = () => {
 
   const handleRestoreTrashItem = async (item: ReportListItem) => {
     try {
-      await backendApi.restoreReport(item.reportId);
+      await backendApi.restoreReport(item.reportId, userInfo?.memberId);
       await refreshReports();
     } catch (error: any) {
       Alert.alert('복구 실패', error?.message || '리포트를 복구하지 못했습니다.');
@@ -119,7 +119,7 @@ const App = () => {
 
   const handleDeleteTrashItem = async (reportId: number) => {
     try {
-      await backendApi.deleteReport(reportId);
+      await backendApi.deleteReport(reportId, userInfo?.memberId);
       await refreshReports();
     } catch (error: any) {
       Alert.alert('삭제 실패', error?.message || '리포트를 삭제하지 못했습니다.');
@@ -137,7 +137,7 @@ const App = () => {
 
   const handleSelectArchive = async (item: ReportListItem) => {
     try {
-      const result = await backendApi.getAppResult(item.reportId);
+      const result = await backendApi.getAppResult(item.reportId, userInfo?.memberId);
       setAnalysisResult(result);
       setCurrentScreen('RESULT');
     } catch (error: any) {
