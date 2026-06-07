@@ -7,6 +7,7 @@ import {
 } from '../types/Api';
 
 const API_BASE_URL = 'https://backend-o2w3.onrender.com';
+let authToken: string | undefined;
 
 type AuthResponse = AuthUser & {
   message: string;
@@ -35,6 +36,7 @@ const requestJson = async <T>(
       ...(options.body instanceof FormData
         ? {}
         : { 'Content-Type': 'application/json' }),
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
       ...options.headers,
     },
   });
@@ -51,6 +53,10 @@ const toUploadPart = (item: AttachedItem) => ({
 });
 
 export const backendApi = {
+  setAuthToken(token?: string) {
+    authToken = token;
+  },
+
   login(email: string, password: string) {
     return requestJson<AuthResponse>('/api/auth/login', {
       method: 'POST',
@@ -70,7 +76,6 @@ export const backendApi = {
     category: string;
     myName?: string;
     targetName?: string;
-    memberId?: number;
     description?: string;
   }) {
     const formData = new FormData();
@@ -88,10 +93,6 @@ export const backendApi = {
       formData.append('targetName', params.targetName.trim());
     }
 
-    if (params.memberId) {
-      formData.append('memberId', String(params.memberId));
-    }
-
     if (params.description?.trim()) {
       formData.append('description', params.description.trim());
     }
@@ -105,45 +106,38 @@ export const backendApi = {
     );
   },
 
-  getAppResult(reportId: number, memberId?: number) {
-    const query = memberId ? `?memberId=${memberId}` : '';
-    return requestJson<AnalysisData>(`/api/reports/${reportId}/app-result${query}`);
+  getAppResult(reportId: number) {
+    return requestJson<AnalysisData>(`/api/reports/${reportId}/app-result`);
   },
 
-  listReports(memberId?: number) {
-    const query = memberId ? `?memberId=${memberId}` : '';
-    return requestJson<ReportListItem[]>(`/api/reports${query}`);
+  listReports() {
+    return requestJson<ReportListItem[]>('/api/reports');
   },
 
-  listTrash(memberId?: number) {
-    const query = memberId ? `?memberId=${memberId}` : '';
-    return requestJson<ReportListItem[]>(`/api/reports/trash${query}`);
+  listTrash() {
+    return requestJson<ReportListItem[]>('/api/reports/trash');
   },
 
-  moveToTrash(reportId: number, memberId?: number) {
-    const query = memberId ? `?memberId=${memberId}` : '';
-    return requestJson<ReportListItem>(`/api/reports/${reportId}/trash${query}`, {
+  moveToTrash(reportId: number) {
+    return requestJson<ReportListItem>(`/api/reports/${reportId}/trash`, {
       method: 'PATCH',
     });
   },
 
-  restoreReport(reportId: number, memberId?: number) {
-    const query = memberId ? `?memberId=${memberId}` : '';
-    return requestJson<ReportListItem>(`/api/reports/${reportId}/restore${query}`, {
+  restoreReport(reportId: number) {
+    return requestJson<ReportListItem>(`/api/reports/${reportId}/restore`, {
       method: 'PATCH',
     });
   },
 
-  deleteReport(reportId: number, memberId?: number) {
-    const query = memberId ? `?memberId=${memberId}` : '';
-    return requestJson<void>(`/api/reports/${reportId}${query}`, {
+  deleteReport(reportId: number) {
+    return requestJson<void>(`/api/reports/${reportId}`, {
       method: 'DELETE',
     });
   },
 
-  emptyTrash(memberId?: number) {
-    const query = memberId ? `?memberId=${memberId}` : '';
-    return requestJson<void>(`/api/reports/trash${query}`, {
+  emptyTrash() {
+    return requestJson<void>('/api/reports/trash', {
       method: 'DELETE',
     });
   },

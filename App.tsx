@@ -49,15 +49,15 @@ const App = () => {
   const [isRestoringSession, setIsRestoringSession] = useState(true);
 
   const refreshReports = useCallback(
-    async (memberId = userInfo?.memberId) => {
+    async () => {
       const [reports, trash] = await Promise.all([
-        backendApi.listReports(memberId),
-        backendApi.listTrash(memberId),
+        backendApi.listReports(),
+        backendApi.listTrash(),
       ]);
       setArchiveItems(reports);
       setTrashItems(trash);
     },
-    [userInfo?.memberId],
+    [],
   );
 
   useEffect(() => {
@@ -73,8 +73,9 @@ const App = () => {
           return;
         }
         setUserInfo(parsedUser);
+        backendApi.setAuthToken(parsedUser.token);
         setCurrentScreen('START');
-        await refreshReports(parsedUser.memberId);
+        await refreshReports();
       } catch (error) {
         console.warn('Failed to restore login session:', error);
         await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
@@ -88,10 +89,11 @@ const App = () => {
 
   const handleLoginSuccess = async (user: AuthUser) => {
     setUserInfo(user);
+    backendApi.setAuthToken(user.token);
     await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
     setCurrentScreen('START');
     try {
-      await refreshReports(user.memberId);
+      await refreshReports();
     } catch (error) {
       console.warn('Failed to load reports:', error);
     }
@@ -103,6 +105,7 @@ const App = () => {
     setTrashItems([]);
     setAnalysisResult(null);
     setIsMypageOpen(false);
+    backendApi.setAuthToken(undefined);
     AsyncStorage.removeItem(AUTH_STORAGE_KEY).catch(error => {
       console.warn('Failed to clear login session:', error);
     });
@@ -120,14 +123,13 @@ const App = () => {
       const upload = await backendApi.uploadChat({
         items,
         category: selectedCategory,
-        memberId: userInfo?.memberId,
         description,
         myName: names?.myName,
         targetName: names?.targetName,
       });
-      const result = await backendApi.getAppResult(upload.reportId, userInfo?.memberId);
+      const result = await backendApi.getAppResult(upload.reportId);
       setAnalysisResult(result);
-      await refreshReports(userInfo?.memberId);
+      await refreshReports();
       setCurrentScreen('RESULT');
     } catch (error: any) {
       Alert.alert('분석 실패', error?.message || '파일 분석 중 오류가 발생했습니다.');
@@ -137,7 +139,7 @@ const App = () => {
 
   const handleArchiveDelete = async (reportId: number) => {
     try {
-      await backendApi.moveToTrash(reportId, userInfo?.memberId);
+      await backendApi.moveToTrash(reportId);
       await refreshReports();
     } catch (error: any) {
       Alert.alert('이동 실패', error?.message || '휴지통으로 이동하지 못했습니다.');
@@ -146,7 +148,7 @@ const App = () => {
 
   const handleRestoreTrashItem = async (item: ReportListItem) => {
     try {
-      await backendApi.restoreReport(item.reportId, userInfo?.memberId);
+      await backendApi.restoreReport(item.reportId);
       await refreshReports();
     } catch (error: any) {
       Alert.alert('복구 실패', error?.message || '리포트를 복구하지 못했습니다.');
@@ -155,7 +157,7 @@ const App = () => {
 
   const handleDeleteTrashItem = async (reportId: number) => {
     try {
-      await backendApi.deleteReport(reportId, userInfo?.memberId);
+      await backendApi.deleteReport(reportId);
       await refreshReports();
     } catch (error: any) {
       Alert.alert('삭제 실패', error?.message || '리포트를 삭제하지 못했습니다.');
@@ -164,7 +166,7 @@ const App = () => {
 
   const handleEmptyTrash = async () => {
     try {
-      await backendApi.emptyTrash(userInfo?.memberId);
+      await backendApi.emptyTrash();
       await refreshReports();
     } catch (error: any) {
       Alert.alert('비우기 실패', error?.message || '휴지통을 비우지 못했습니다.');
@@ -173,7 +175,7 @@ const App = () => {
 
   const handleSelectArchive = async (item: ReportListItem) => {
     try {
-      const result = await backendApi.getAppResult(item.reportId, userInfo?.memberId);
+      const result = await backendApi.getAppResult(item.reportId);
       setAnalysisResult(result);
       setCurrentScreen('RESULT');
     } catch (error: any) {
