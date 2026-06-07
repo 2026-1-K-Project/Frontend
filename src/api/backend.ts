@@ -18,7 +18,7 @@ const parseJson = async <T>(response: Response): Promise<T> => {
   const data = text ? JSON.parse(text) : null;
 
   if (!response.ok) {
-    const message = data?.message || data?.error || `HTTP ${response.status}`;
+    const message = data?.message || data?.detail || data?.error || `HTTP ${response.status}`;
     throw new Error(message);
   }
 

@@ -112,6 +112,23 @@ const App = () => {
     setCurrentScreen('LOGIN');
   };
 
+  const userMessage = (error: any, fallback: string) => {
+    const message = String(error?.message || '');
+    if (message.includes('401') || message.toLowerCase().includes('unauthorized')) {
+      return '로그인 정보가 만료됐거나 인증이 필요합니다. 다시 로그인해주세요.';
+    }
+    if (message.includes('403') || message.toLowerCase().includes('denied')) {
+      return '이 리포트에 접근할 권한이 없습니다.';
+    }
+    if (message.includes('Failed to fetch') || message.includes('Network')) {
+      return '서버에 연결하지 못했습니다. 네트워크 상태를 확인한 뒤 다시 시도해주세요.';
+    }
+    if (message.includes('업로드') || message.includes('file') || message.includes('파일')) {
+      return '파일을 분석할 수 없습니다. txt, png, jpg, jpeg, webp 형식인지 확인해주세요.';
+    }
+    return message || fallback;
+  };
+
   const runAnalysis = async (
     items: AttachedItem[],
     description: string,
@@ -132,7 +149,7 @@ const App = () => {
       await refreshReports();
       setCurrentScreen('RESULT');
     } catch (error: any) {
-      Alert.alert('분석 실패', error?.message || '파일 분석 중 오류가 발생했습니다.');
+      Alert.alert('분석 실패', userMessage(error, '파일 분석 중 오류가 발생했습니다.'));
       setCurrentScreen('INPUT');
     }
   };
@@ -142,7 +159,7 @@ const App = () => {
       await backendApi.moveToTrash(reportId);
       await refreshReports();
     } catch (error: any) {
-      Alert.alert('이동 실패', error?.message || '휴지통으로 이동하지 못했습니다.');
+      Alert.alert('이동 실패', userMessage(error, '휴지통으로 이동하지 못했습니다.'));
     }
   };
 
@@ -151,7 +168,7 @@ const App = () => {
       await backendApi.restoreReport(item.reportId);
       await refreshReports();
     } catch (error: any) {
-      Alert.alert('복구 실패', error?.message || '리포트를 복구하지 못했습니다.');
+      Alert.alert('복구 실패', userMessage(error, '리포트를 복구하지 못했습니다.'));
     }
   };
 
@@ -160,7 +177,7 @@ const App = () => {
       await backendApi.deleteReport(reportId);
       await refreshReports();
     } catch (error: any) {
-      Alert.alert('삭제 실패', error?.message || '리포트를 삭제하지 못했습니다.');
+      Alert.alert('삭제 실패', userMessage(error, '리포트를 삭제하지 못했습니다.'));
     }
   };
 
@@ -169,7 +186,7 @@ const App = () => {
       await backendApi.emptyTrash();
       await refreshReports();
     } catch (error: any) {
-      Alert.alert('비우기 실패', error?.message || '휴지통을 비우지 못했습니다.');
+      Alert.alert('비우기 실패', userMessage(error, '휴지통을 비우지 못했습니다.'));
     }
   };
 
@@ -179,7 +196,7 @@ const App = () => {
       setAnalysisResult(result);
       setCurrentScreen('RESULT');
     } catch (error: any) {
-      Alert.alert('조회 실패', error?.message || '리포트를 불러오지 못했습니다.');
+      Alert.alert('조회 실패', userMessage(error, '리포트를 불러오지 못했습니다.'));
     }
   };
 
