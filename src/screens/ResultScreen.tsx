@@ -82,7 +82,6 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
           <Section title="AI 핵심 판단" theme={theme}>
             <View style={styles.verdictGrid}>
               <MiniCard label="결론" value={ai.verdict} />
-              <MiniCard label="확신도" value={`${ai.confidence}%`} />
               <MiniCard label="관계 단계" value={ai.relationshipStage} wide />
             </View>
           </Section>

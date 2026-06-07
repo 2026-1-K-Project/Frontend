@@ -9,7 +9,7 @@ import {
 
 import StartScreen from './src/screens/StartScreen';
 import CategoryScreen from './src/screens/CategoryScreen';
-import InputScreen from './src/screens/InputScreen';
+import InputScreen, { AnalysisNames } from './src/screens/InputScreen';
 import AnalyzingScreen from './src/screens/AnalyzingScreen';
 import ResultScreen from './src/screens/ResultScreen';
 import Loginpage from './src/Userpage/Loginpage';
@@ -73,7 +73,11 @@ const App = () => {
     setCurrentScreen('LOGIN');
   };
 
-  const runAnalysis = async (items: AttachedItem[], description: string) => {
+  const runAnalysis = async (
+    items: AttachedItem[],
+    description: string,
+    names?: AnalysisNames,
+  ) => {
     setCurrentScreen('ANALYZING');
 
     try {
@@ -82,6 +86,8 @@ const App = () => {
         category: selectedCategory,
         memberId: userInfo?.memberId,
         description,
+        myName: names?.myName,
+        targetName: names?.targetName,
       });
       const result = await backendApi.getAppResult(upload.reportId);
       setAnalysisResult(result);

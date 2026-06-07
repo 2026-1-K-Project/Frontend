@@ -68,6 +68,7 @@ export const backendApi = {
   async uploadChat(params: {
     items: AttachedItem[];
     category: string;
+    myName?: string;
     targetName?: string;
     memberId?: number;
     description?: string;
@@ -80,7 +81,12 @@ export const backendApi = {
     });
 
     formData.append('category', params.category);
-    formData.append('targetName', params.targetName || '상대방');
+    if (params.myName?.trim()) {
+      formData.append('myName', params.myName.trim());
+    }
+    if (params.targetName?.trim()) {
+      formData.append('targetName', params.targetName.trim());
+    }
 
     if (params.memberId) {
       formData.append('memberId', String(params.memberId));
