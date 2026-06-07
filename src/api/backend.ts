@@ -7,6 +7,7 @@ import {
 } from '../types/Api';
 
 const API_BASE_URL = 'https://backend-o2w3.onrender.com';
+let authToken: string | undefined;
 
 type AuthResponse = AuthUser & {
   message: string;
@@ -17,7 +18,7 @@ const parseJson = async <T>(response: Response): Promise<T> => {
   const data = text ? JSON.parse(text) : null;
 
   if (!response.ok) {
-    const message = data?.message || data?.error || `HTTP ${response.status}`;
+    const message = data?.message || data?.detail || data?.error || `HTTP ${response.status}`;
     throw new Error(message);
   }
 
@@ -35,6 +36,7 @@ const requestJson = async <T>(
       ...(options.body instanceof FormData
         ? {}
         : { 'Content-Type': 'application/json' }),
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
       ...options.headers,
     },
   });
@@ -51,6 +53,10 @@ const toUploadPart = (item: AttachedItem) => ({
 });
 
 export const backendApi = {
+  setAuthToken(token?: string) {
+    authToken = token;
+  },
+
   login(email: string, password: string) {
     return requestJson<AuthResponse>('/api/auth/login', {
       method: 'POST',
@@ -70,7 +76,6 @@ export const backendApi = {
     category: string;
     myName?: string;
     targetName?: string;
-    memberId?: number;
     description?: string;
   }) {
     const formData = new FormData();
@@ -86,10 +91,6 @@ export const backendApi = {
     }
     if (params.targetName?.trim()) {
       formData.append('targetName', params.targetName.trim());
-    }
-
-    if (params.memberId) {
-      formData.append('memberId', String(params.memberId));
     }
 
     if (params.description?.trim()) {
@@ -109,14 +110,12 @@ export const backendApi = {
     return requestJson<AnalysisData>(`/api/reports/${reportId}/app-result`);
   },
 
-  listReports(memberId?: number) {
-    const query = memberId ? `?memberId=${memberId}` : '';
-    return requestJson<ReportListItem[]>(`/api/reports${query}`);
+  listReports() {
+    return requestJson<ReportListItem[]>('/api/reports');
   },
 
-  listTrash(memberId?: number) {
-    const query = memberId ? `?memberId=${memberId}` : '';
-    return requestJson<ReportListItem[]>(`/api/reports/trash${query}`);
+  listTrash() {
+    return requestJson<ReportListItem[]>('/api/reports/trash');
   },
 
   moveToTrash(reportId: number) {
@@ -137,9 +136,8 @@ export const backendApi = {
     });
   },
 
-  emptyTrash(memberId?: number) {
-    const query = memberId ? `?memberId=${memberId}` : '';
-    return requestJson<void>(`/api/reports/trash${query}`, {
+  emptyTrash() {
+    return requestJson<void>('/api/reports/trash', {
       method: 'DELETE',
     });
   },
