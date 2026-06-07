@@ -56,6 +56,7 @@ const Loginpage: React.FC<LoginpageProps> = ({ onLogin, isDarkMode }) => {
         memberId: user.memberId,
         email: user.email,
         name: user.name,
+        token: user.token,
       });
     } catch (error: any) {
       Alert.alert(

@@ -1,11 +1,14 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
+  ActivityIndicator,
   SafeAreaView,
   StyleSheet,
   StatusBar,
+  Text,
   View,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import StartScreen from './src/screens/StartScreen';
 import CategoryScreen from './src/screens/CategoryScreen';
@@ -33,6 +36,8 @@ type Screen =
   | 'TRASH';
 
 const App = () => {
+  const AUTH_STORAGE_KEY = 'kproject.authUser';
+
   const [currentScreen, setCurrentScreen] = useState<Screen>('LOGIN');
   const [selectedCategory, setSelectedCategory] = useState('썸');
   const [analysisResult, setAnalysisResult] = useState<AnalysisData | null>(null);
@@ -41,6 +46,7 @@ const App = () => {
   const [trashItems, setTrashItems] = useState<ReportListItem[]>([]);
   const [isMypageOpen, setIsMypageOpen] = useState(false);
   const [userInfo, setUserInfo] = useState<AuthUser | null>(null);
+  const [isRestoringSession, setIsRestoringSession] = useState(true);
 
   const refreshReports = useCallback(
     async (memberId = userInfo?.memberId) => {
@@ -54,8 +60,35 @@ const App = () => {
     [userInfo?.memberId],
   );
 
+  useEffect(() => {
+    const restoreSession = async () => {
+      try {
+        const storedUser = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
+        if (!storedUser) {
+          return;
+        }
+        const parsedUser = JSON.parse(storedUser) as AuthUser;
+        if (!parsedUser?.memberId || !parsedUser?.email) {
+          await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
+          return;
+        }
+        setUserInfo(parsedUser);
+        setCurrentScreen('START');
+        await refreshReports(parsedUser.memberId);
+      } catch (error) {
+        console.warn('Failed to restore login session:', error);
+        await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
+      } finally {
+        setIsRestoringSession(false);
+      }
+    };
+
+    restoreSession();
+  }, [refreshReports]);
+
   const handleLoginSuccess = async (user: AuthUser) => {
     setUserInfo(user);
+    await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
     setCurrentScreen('START');
     try {
       await refreshReports(user.memberId);
@@ -70,6 +103,9 @@ const App = () => {
     setTrashItems([]);
     setAnalysisResult(null);
     setIsMypageOpen(false);
+    AsyncStorage.removeItem(AUTH_STORAGE_KEY).catch(error => {
+      console.warn('Failed to clear login session:', error);
+    });
     setCurrentScreen('LOGIN');
   };
 
@@ -221,6 +257,15 @@ const App = () => {
     }
   };
 
+  if (isRestoringSession) {
+    return (
+      <SafeAreaView style={[styles.safeArea, styles.loadingContainer, { backgroundColor: isDarkMode ? '#111827' : '#F8F9FE' }]}>
+        <ActivityIndicator color="#8B5CF6" />
+        <Text style={[styles.loadingText, { color: isDarkMode ? '#E5E7EB' : '#64748B' }]}>로그인 상태 확인 중</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <View style={{ flex: 1 }}>
       <SafeAreaView style={[styles.safeArea, { backgroundColor: isDarkMode ? '#111827' : '#F8F9FE' }]}>
@@ -253,6 +298,15 @@ const App = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 14,
+    fontWeight: '700',
   },
 });
 
