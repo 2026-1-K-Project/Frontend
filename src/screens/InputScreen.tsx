@@ -123,7 +123,7 @@ const InputScreen: React.FC<InputScreenProps> = ({
       >
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           <Text style={[styles.title, { color: theme.title }]}>
-            카톡 txt 파일이나 대화 캡처 이미지를 올려주세요
+            카카오톡 txt 파일이나 대화 캡처 이미지를 올려주세요
           </Text>
 
           <View style={[styles.attachmentBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
@@ -149,7 +149,7 @@ const InputScreen: React.FC<InputScreenProps> = ({
               </ScrollView>
             ) : (
               <Text style={[styles.emptyText, { color: theme.subText }]}>
-                아직 첨부된 파일이 없습니다.
+                아직 첨부한 파일이 없습니다.
               </Text>
             )}
           </View>

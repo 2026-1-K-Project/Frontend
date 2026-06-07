@@ -87,6 +87,18 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
           </Section>
         )}
 
+        {ai && (!!data.description || !!ai.requestAnswer) && (
+          <Section title="요청내용에 대한 답변" theme={theme}>
+            {!!data.description && <Text style={styles.messageText}>{data.description}</Text>}
+            {!!ai.requestAnswer && <Text style={styles.bodyText}>{ai.requestAnswer}</Text>}
+            {!!ai.requestReason && <Text style={[styles.bodyText, styles.topGap]}>{ai.requestReason}</Text>}
+            <BulletList
+              items={ai.requestEvidence || []}
+              fallback="요청내용과 직접 연결되는 대화 근거가 충분하지 않습니다."
+            />
+          </Section>
+        )}
+
         {ai && (
           <Section title="실제 대화 기반 호감 신호" theme={theme}>
             <EvidenceList items={ai.positiveSignals} positive />

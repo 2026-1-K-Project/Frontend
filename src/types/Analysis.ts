@@ -34,6 +34,9 @@ export interface AiDeepAnalysis {
   confidence: number;
   relationshipStage: string;
   oneLineSummary: string;
+  requestAnswer?: string;
+  requestReason?: string;
+  requestEvidence?: string[];
   positiveSignals: AiConversationEvidence[];
   riskSignals: AiConversationEvidence[];
   counterpartyStyle: string;

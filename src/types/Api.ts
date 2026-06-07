@@ -10,6 +10,7 @@ export type AuthUser = {
   memberId: number;
   email: string;
   name: string;
+  token?: string;
 };
 
 export type ChatUploadResponse = {

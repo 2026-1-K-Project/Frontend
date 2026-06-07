@@ -56,6 +56,7 @@ const Loginpage: React.FC<LoginpageProps> = ({ onLogin, isDarkMode }) => {
         memberId: user.memberId,
         email: user.email,
         name: user.name,
+        token: user.token,
       });
     } catch (error: any) {
       Alert.alert(
@@ -86,7 +87,7 @@ const Loginpage: React.FC<LoginpageProps> = ({ onLogin, isDarkMode }) => {
           </Text>
           <Text style={[styles.bodyTextSub, { color: theme.subText }]}>
             {isLogin
-              ? '로그인 후 대화 분석을 시작하세요.'
+              ? '로그인하면 저장된 분석을 이어서 볼 수 있어요.'
               : '간단한 정보만 입력하면 바로 시작할 수 있어요.'}
           </Text>
 
