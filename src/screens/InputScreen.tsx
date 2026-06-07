@@ -18,9 +18,18 @@ import { AttachedItem } from '../types/Api';
 
 const { width } = Dimensions.get('window');
 
+export interface AnalysisNames {
+  myName?: string;
+  targetName?: string;
+}
+
 interface InputScreenProps {
   onBack: () => void;
-  onAnalyze: (items: AttachedItem[], description: string) => void | Promise<void>;
+  onAnalyze: (
+    items: AttachedItem[],
+    description: string,
+    names?: AnalysisNames,
+  ) => void | Promise<void>;
   isDarkMode: boolean;
 }
 
@@ -33,6 +42,8 @@ const InputScreen: React.FC<InputScreenProps> = ({
 }) => {
   const [attachedItems, setAttachedItems] = useState<AttachedItem[]>([]);
   const [description, setDescription] = useState('');
+  const [myName, setMyName] = useState('');
+  const [targetName, setTargetName] = useState('');
 
   const theme = {
     background: isDarkMode ? '#111827' : '#F8F9FE',
@@ -152,6 +163,29 @@ const InputScreen: React.FC<InputScreenProps> = ({
             </TouchableOpacity>
           </View>
 
+          <View style={styles.nameRow}>
+            <View style={[styles.nameInputBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <TextInput
+                style={[styles.nameInput, { color: theme.text }]}
+                placeholder="내 이름"
+                placeholderTextColor={theme.subText}
+                value={myName}
+                onChangeText={setMyName}
+                returnKeyType="next"
+              />
+            </View>
+            <View style={[styles.nameInputBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <TextInput
+                style={[styles.nameInput, { color: theme.text }]}
+                placeholder="상대방 이름"
+                placeholderTextColor={theme.subText}
+                value={targetName}
+                onChangeText={setTargetName}
+                returnKeyType="done"
+              />
+            </View>
+          </View>
+
           <View style={[styles.descriptionBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
             <TextInput
               style={[styles.textInput, { color: theme.text }]}
@@ -165,7 +199,10 @@ const InputScreen: React.FC<InputScreenProps> = ({
 
           <TouchableOpacity
             style={[styles.analyzeButton, { backgroundColor: isReady ? '#8B5CF6' : theme.disabled }]}
-            onPress={() => isReady && onAnalyze(attachedItems, description)}
+            onPress={() => isReady && onAnalyze(attachedItems, description, {
+              myName: myName.trim(),
+              targetName: targetName.trim(),
+            })}
             disabled={!isReady}
           >
             <Text style={[styles.analyzeButtonText, { color: isReady ? '#FFFFFF' : theme.subText }]}>
@@ -244,6 +281,21 @@ const styles = StyleSheet.create({
   },
   fileButton: { backgroundColor: '#7C3AED' },
   uploadButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
+  nameRow: {
+    width: width * 0.86,
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 12,
+  },
+  nameInputBox: {
+    flex: 1,
+    height: 48,
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    justifyContent: 'center',
+  },
+  nameInput: { fontSize: 14, fontWeight: '700' },
   descriptionBox: {
     width: width * 0.86,
     height: 124,
