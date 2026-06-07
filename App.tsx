@@ -154,13 +154,22 @@ const App = () => {
     }
   };
 
-  const handleArchiveDelete = async (reportId: number) => {
-    try {
-      await backendApi.moveToTrash(reportId);
-      await refreshReports();
-    } catch (error: any) {
-      Alert.alert('이동 실패', userMessage(error, '휴지통으로 이동하지 못했습니다.'));
-    }
+  const handleArchiveDelete = (reportId: number) => {
+    Alert.alert('휴지통으로 이동', '이 리포트를 휴지통으로 이동할까요?', [
+      { text: '취소', style: 'cancel' },
+      {
+        text: '이동',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await backendApi.moveToTrash(reportId);
+            await refreshReports();
+          } catch (error: any) {
+            Alert.alert('이동 실패', userMessage(error, '휴지통으로 이동하지 못했습니다.'));
+          }
+        },
+      },
+    ]);
   };
 
   const handleRestoreTrashItem = async (item: ReportListItem) => {
@@ -172,13 +181,22 @@ const App = () => {
     }
   };
 
-  const handleDeleteTrashItem = async (reportId: number) => {
-    try {
-      await backendApi.deleteReport(reportId);
-      await refreshReports();
-    } catch (error: any) {
-      Alert.alert('삭제 실패', userMessage(error, '리포트를 삭제하지 못했습니다.'));
-    }
+  const handleDeleteTrashItem = (reportId: number) => {
+    Alert.alert('영구 삭제', '이 리포트를 완전히 삭제할까요? 삭제 후에는 복구할 수 없습니다.', [
+      { text: '취소', style: 'cancel' },
+      {
+        text: '삭제',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await backendApi.deleteReport(reportId);
+            await refreshReports();
+          } catch (error: any) {
+            Alert.alert('삭제 실패', userMessage(error, '리포트를 삭제하지 못했습니다.'));
+          }
+        },
+      },
+    ]);
   };
 
   const handleEmptyTrash = async () => {
